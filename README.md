@@ -1,7 +1,7 @@
 
-  # Edit Figma design
+  # Colmena PMV
 
-  This is a code bundle for Edit Figma design. The original project is available at https://www.figma.com/design/vfdMptAZHm0WlbGLFVd0a9/Edit-Figma-design.
+  This is a code bundle for Edit Figma design. The original project is available at https://www.figma.com/design/vfdMptAZHm0WlbGLFVd0a9/Colmena PMV
 
   ## Running the code
 
