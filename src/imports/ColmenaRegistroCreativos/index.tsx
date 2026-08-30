@@ -45,6 +45,7 @@ export default function ColmenaRegistroCreativos() {
         subtitle="Muestra tu talento y haz crecer tu experiencia."
         nameLabel="Nombre completo"
         namePlaceholder="Nombre ejemplo"
+        rol="creativo"
       />
       <SiteFooter />
     </div>

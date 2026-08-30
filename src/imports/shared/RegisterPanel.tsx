@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { FormField } from "./FormField";
+import { signUpUsuario } from "../../lib/auth";
+import { useAuth } from "../../lib/AuthContext";
+import type { Rol, TipoCliente } from "../../lib/types";
 
-function ClientTypeToggle({ value, onChange }: { value: "empresa" | "persona"; onChange: (v: "empresa" | "persona") => void }) {
-  const options: Array<{ key: "empresa" | "persona"; label: string }> = [
+function ClientTypeToggle({ value, onChange }: { value: TipoCliente; onChange: (v: TipoCliente) => void }) {
+  const options: Array<{ key: TipoCliente; label: string }> = [
     { key: "empresa", label: "Soy Empresa" },
-    { key: "persona", label: "Soy Persona Particular" },
+    { key: "persona_natural", label: "Soy Persona Particular" },
   ];
   return (
     <div className="flex w-full flex-col gap-3 sm:flex-row" role="group" aria-label="Tipo de cliente">
@@ -32,7 +35,8 @@ function ClientTypeToggle({ value, onChange }: { value: "empresa" | "persona"; o
 /**
  * Shared teal registration panel used by both Registro-Clientes and
  * Registro-Creativos — the two pages are visually identical, they only
- * differ in copy and in the decorative pattern exported per Figma page.
+ * differ in copy, in the decorative pattern exported per Figma page, and
+ * in which `rol` they register the user as.
  */
 export function RegisterPanel({
   decorPaths,
@@ -44,6 +48,7 @@ export function RegisterPanel({
   subtitle,
   nameLabel,
   namePlaceholder,
+  rol,
   showClientTypeToggle = false,
 }: {
   decorPaths: string[];
@@ -55,11 +60,54 @@ export function RegisterPanel({
   subtitle: string;
   nameLabel: string;
   namePlaceholder: string;
+  rol: Rol;
   showClientTypeToggle?: boolean;
 }) {
-  const [clientType, setClientType] = useState<"empresa" | "persona">("empresa");
-  const effectiveNameLabel = showClientTypeToggle && clientType === "persona" ? "Nombre completo" : nameLabel;
-  const effectiveNamePlaceholder = showClientTypeToggle && clientType === "persona" ? "Nombre ejemplo" : namePlaceholder;
+  const navigate = useNavigate();
+  const { setProfile } = useAuth();
+  const [clientType, setClientType] = useState<TipoCliente>("empresa");
+  const [nombre, setNombre] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [contrasena, setContrasena] = useState("");
+  const [confirmar, setConfirmar] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const effectiveNameLabel = showClientTypeToggle && clientType === "persona_natural" ? "Nombre completo" : nameLabel;
+  const effectiveNamePlaceholder = showClientTypeToggle && clientType === "persona_natural" ? "Nombre ejemplo" : namePlaceholder;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (contrasena !== confirmar) {
+      setError("Las contraseñas no coinciden.");
+      return;
+    }
+    if (contrasena.length < 4) {
+      setError("La contraseña debe tener al menos 4 caracteres.");
+      return;
+    }
+
+    setLoading(true);
+    const { profile, error: signUpError } = await signUpUsuario({
+      nombre,
+      correo,
+      contrasena,
+      rol,
+      tipoCliente: rol === "cliente" ? clientType : null,
+    });
+    setLoading(false);
+
+    if (signUpError || !profile) {
+      setError(signUpError?.message ?? "No se pudo completar el registro.");
+      return;
+    }
+
+    setProfile(profile);
+    navigate("/dashboard");
+  };
 
   return (
     <div className="relative w-full shrink-0 overflow-hidden bg-[#0d718c]" data-name="Login">
@@ -87,19 +135,40 @@ export function RegisterPanel({
 
           {showClientTypeToggle && <ClientTypeToggle value={clientType} onChange={setClientType} />}
 
-          <form className="flex w-full flex-col items-stretch gap-5 text-left" onSubmit={(e) => e.preventDefault()}>
-            <FormField label={effectiveNameLabel} name="name" placeholder={effectiveNamePlaceholder} autoComplete="name" />
-            <FormField label="Teléfono" type="tel" name="phone" placeholder="XXXXXXXX" autoComplete="tel" />
-            <FormField label="Correo electrónico" type="email" name="email" placeholder="ejemplo@gmail.com" autoComplete="email" />
-            <FormField label="Contraseña" type="password" name="password" placeholder="***********" autoComplete="new-password" />
-            <FormField label="Confirmar contraseña" type="password" name="confirmPassword" placeholder="***********" autoComplete="new-password" />
+          <form className="flex w-full flex-col items-stretch gap-5 text-left" onSubmit={handleSubmit}>
+            <FormField label={effectiveNameLabel} name="name" placeholder={effectiveNamePlaceholder} value={nombre} onChange={setNombre} autoComplete="name" required />
+            <FormField label="Teléfono" type="tel" name="phone" placeholder="XXXXXXXX" value={telefono} onChange={setTelefono} autoComplete="tel" />
+            <FormField label="Correo electrónico" type="email" name="email" placeholder="ejemplo@gmail.com" value={correo} onChange={setCorreo} autoComplete="email" required />
+            <FormField
+              label="Contraseña"
+              type="password"
+              name="password"
+              placeholder="***********"
+              value={contrasena}
+              onChange={setContrasena}
+              autoComplete="new-password"
+              required
+            />
+            <FormField
+              label="Confirmar contraseña"
+              type="password"
+              name="confirmPassword"
+              placeholder="***********"
+              value={confirmar}
+              onChange={setConfirmar}
+              autoComplete="new-password"
+              required
+            />
+
+            {error && <p className="text-[14px] font-medium text-[#d4183d]">{error}</p>}
 
             <button
               type="submit"
-              className="flex w-full items-center justify-center rounded-[12px] border-2 border-[#0a142f] bg-black px-7 py-3.5"
+              disabled={loading}
+              className="flex w-full items-center justify-center rounded-[12px] border-2 border-[#0a142f] bg-black px-7 py-3.5 disabled:opacity-60"
               data-name="button"
             >
-              <p className="font-bold leading-normal text-white text-[15px] whitespace-nowrap">Registrarse</p>
+              <p className="font-bold leading-normal text-white text-[15px] whitespace-nowrap">{loading ? "Registrando…" : "Registrarse"}</p>
             </button>
           </form>
 

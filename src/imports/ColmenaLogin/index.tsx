@@ -1,9 +1,12 @@
-import { Link } from "react-router";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router";
 import svgPaths from "./svg-dp0sfwsurr";
 import imgColmenaLogoAmarillo2 from "./b8c094e83e9356f8b663fb6d35b6e0f860fba372.png";
 import { SiteHeader, AUTH_NAV_LINKS } from "../shared/SiteHeader";
 import { SiteFooter } from "../shared/SiteFooter";
 import { FormField } from "../shared/FormField";
+import { signInUsuario } from "../../lib/auth";
+import { useAuth } from "../../lib/AuthContext";
 
 /* Decorative hexagon pattern that fills the orange panel behind the form. */
 function LoginPattern() {
@@ -31,6 +34,27 @@ function LoginPattern() {
 }
 
 function LoginForm() {
+  const navigate = useNavigate();
+  const { setProfile } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    const { profile, error: signInError } = await signInUsuario(email, password);
+    setLoading(false);
+    if (signInError || !profile) {
+      setError(signInError?.message ?? "Correo o contraseña incorrectos.");
+      return;
+    }
+    setProfile(profile);
+    navigate("/dashboard");
+  };
+
   return (
     <div className="relative flex w-full max-w-[560px] flex-col items-center gap-6 rounded-[24px] bg-[#ffd081] p-8 text-center sm:p-10 lg:max-w-[600px]" data-name="Login">
       <p className="font-extrabold leading-normal text-[#0a142f] text-[28px] sm:text-[32px] lg:text-[40px]">Inicia Sesión</p>
@@ -38,9 +62,29 @@ function LoginForm() {
         Accede a tu cuenta y encuentra tu lugar en la colmena.
       </p>
 
-      <form className="flex w-full flex-col items-stretch gap-5 text-left" onSubmit={(e) => e.preventDefault()}>
-        <FormField label="Correo electrónico" type="email" name="email" placeholder="ejemplo@gmail.com" autoComplete="email" />
-        <FormField label="Contraseña" type="password" name="password" placeholder="***********" autoComplete="current-password" />
+      <form className="flex w-full flex-col items-stretch gap-5 text-left" onSubmit={handleSubmit}>
+        <FormField
+          label="Correo electrónico"
+          type="email"
+          name="email"
+          placeholder="ejemplo@gmail.com"
+          autoComplete="email"
+          value={email}
+          onChange={setEmail}
+          required
+        />
+        <FormField
+          label="Contraseña"
+          type="password"
+          name="password"
+          placeholder="***********"
+          autoComplete="current-password"
+          value={password}
+          onChange={setPassword}
+          required
+        />
+
+        {error && <p className="text-[14px] font-medium text-[#d4183d]">{error}</p>}
 
         <a href="#" className="self-end text-[14px] font-extrabold text-[#1e1e1e] underline">
           ¿Olvidaste tu contraseña?
@@ -48,10 +92,11 @@ function LoginForm() {
 
         <button
           type="submit"
-          className="flex w-full items-center justify-center rounded-[12px] border-2 border-[#0a142f] bg-black px-7 py-3.5"
+          disabled={loading}
+          className="flex w-full items-center justify-center rounded-[12px] border-2 border-[#0a142f] bg-black px-7 py-3.5 disabled:opacity-60"
           data-name="button"
         >
-          <p className="font-bold leading-normal text-white text-[15px] whitespace-nowrap">Iniciar sesión</p>
+          <p className="font-bold leading-normal text-white text-[15px] whitespace-nowrap">{loading ? "Iniciando…" : "Iniciar sesión"}</p>
         </button>
       </form>
 

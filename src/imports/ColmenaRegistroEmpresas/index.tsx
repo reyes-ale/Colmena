@@ -45,6 +45,7 @@ export default function ColmenaRegistroEmpresas() {
         subtitle="Encuentra el talento que tu negocio necesita."
         nameLabel="Nombre de la empresa"
         namePlaceholder="Nombre ejemplo"
+        rol="cliente"
         showClientTypeToggle
       />
       <SiteFooter />
