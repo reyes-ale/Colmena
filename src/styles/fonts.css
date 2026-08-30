@@ -1,0 +1,8 @@
+/*
+  Colmena usa una única familia tipográfica en todo el proyecto: Outfit.
+  Se carga desde Google Fonts en index.html (preconnect + stylesheet).
+  Este archivo define el fallback stack para cuando la fuente aún no cargó.
+*/
+:root {
+  --font-outfit: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}

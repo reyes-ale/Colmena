@@ -1,130 +1,146 @@
+import { useState } from "react";
+import { Link } from "react-router";
+import { Menu, X } from "lucide-react";
 import svgPaths from "./svg-37onh1gkby";
 import imgColmenaLogoNormal1 from "./41ac45f8c7521b60c25adadf954c316d83f63029.png";
 import imgHero from "./ff6b986044aead2c3600accf26c924668bf06d48.png";
-import imgImage11 from "./492b145757990fcbead91eb481329bf6f79c9fcb.png";
 import imgImage1 from "./53abd0fca351b1e693fe01c8b2d0df5281759313.png";
 import imgImage17 from "./3f82927c9d3f8c62c37682ae00e34d79f30f25a1.png";
 import imgFinalCta from "./e992e2284d2277119fe0049c41edcec79d520a48.png";
 import imgColmenaLogoAmarillo1 from "./b8c094e83e9356f8b663fb6d35b6e0f860fba372.png";
 
-function NavLinks() {
+/* ------------------------------------------------------------------ */
+/* Header                                                              */
+/* ------------------------------------------------------------------ */
+
+const NAV_LINKS = [
+  { label: "Cómo Funciona", href: "#como-funciona" },
+  { label: "Para Clientes", href: "#clientes" },
+  { label: "Para Creativos", href: "#creativos" },
+  { label: "Planes Colmena", href: "#planes" },
+];
+
+function NavLinks({ className = "", onNavigate }: { className?: string; onNavigate?: () => void }) {
   return (
-    <div className="[word-break:break-word] content-stretch flex font-['DM_Sans:Medium',sans-serif] font-medium gap-[32px] items-start relative shrink-0 text-[#0f172a] text-[15px] whitespace-nowrap" data-name="Nav-Links">
-      <button className="block cursor-pointer leading-[0] relative shrink-0 text-left" style={{ fontVariationSettings: '"opsz" 14' }}>
-        <p className="leading-[normal]">Cómo Funciona</p>
-      </button>
-      <button className="block cursor-pointer leading-[0] relative shrink-0 text-left" style={{ fontVariationSettings: '"opsz" 14' }}>
-        <p className="leading-[normal]">Para Empresas</p>
-      </button>
-      <p className="leading-[normal] relative shrink-0" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Para Estudiantes
-      </p>
-      <button className="block cursor-pointer leading-[0] relative shrink-0 text-left" style={{ fontVariationSettings: '"opsz" 14' }}>
-        <p className="leading-[normal]">Categorías</p>
-      </button>
+    <div className={`flex flex-wrap items-center gap-x-8 gap-y-4 font-medium text-[#0f172a] text-[15px] ${className}`}>
+      {NAV_LINKS.map(({ label, href }) => (
+        <a key={label} href={href} onClick={onNavigate} className="cursor-pointer text-left leading-normal">
+          {label}
+        </a>
+      ))}
     </div>
   );
 }
 
-function Button() {
+function LoginButton() {
   return (
-    <div className="bg-[rgba(0,0,0,0)] content-stretch flex items-center justify-center px-[28px] py-[14px] relative rounded-[12px] shrink-0" data-name="button">
-      <div aria-hidden className="absolute border-2 border-black border-solid inset-0 pointer-events-none rounded-[12px]" />
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#0a142f] text-[15px] whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Inicia Sesión
-      </p>
-    </div>
-  );
-}
-
-function ActionButtons() {
-  return (
-    <div className="content-stretch flex items-start relative shrink-0" data-name="Action-Buttons">
-      <Button />
-    </div>
+    <Link to="/login" className="flex shrink-0 items-center justify-center rounded-[12px] border-2 border-black bg-transparent px-6 py-3" data-name="button">
+      <p className="font-bold leading-normal text-[#0a142f] text-[15px] whitespace-nowrap">Inicia Sesión</p>
+    </Link>
   );
 }
 
 function Header() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <div className="bg-white content-stretch flex items-center justify-between px-[80px] py-[24px] relative shrink-0 w-full" data-name="Header">
-      <div aria-hidden className="absolute border-[#e2e8f0] border-b border-solid inset-0 pointer-events-none" />
-      <div className="flex h-[64.634px] items-center justify-center relative shrink-0 w-[55.328px]">
-        <div className="flex-none rotate-[-0.29deg]">
-          <div className="h-[64.359px] relative w-[55.006px]" data-name="colmena-logo-normal 1">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <img alt="" className="absolute h-[464.55%] left-[-175.23%] max-w-none top-[-193.61%] w-[789.1%]" src={imgColmenaLogoNormal1} />
+    <div className="relative w-full shrink-0 border-b border-[#e2e8f0] bg-white" data-name="Header">
+      <div className="flex w-full items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-20 lg:py-6">
+        <div className="relative h-[52px] w-[44px] shrink-0 lg:h-[65px] lg:w-[55px]">
+          <div className="flex-none rotate-[-0.29deg]">
+            <div className="relative h-[52px] w-[44px] lg:h-[64px] lg:w-[55px]" data-name="colmena-logo-normal 1">
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <img alt="Colmena" className="absolute h-[464.55%] left-[-175.23%] max-w-none top-[-193.61%] w-[789.1%]" src={imgColmenaLogoNormal1} />
+              </div>
             </div>
           </div>
         </div>
+
+        <NavLinks className="hidden lg:flex" />
+
+        <div className="hidden shrink-0 lg:block">
+          <LoginButton />
+        </div>
+
+        <button
+          type="button"
+          aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border border-[#e2e8f0] lg:hidden"
+        >
+          {menuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
       </div>
-      <NavLinks />
-      <ActionButtons />
+
+      {menuOpen && (
+        <div className="flex flex-col gap-6 border-t border-[#e2e8f0] bg-white px-4 py-6 sm:px-6 lg:hidden">
+          <NavLinks className="flex-col items-start gap-4" onNavigate={() => setMenuOpen(false)} />
+          <LoginButton />
+        </div>
+      )}
     </div>
   );
 }
 
-function EyebrowBadge() {
+/* ------------------------------------------------------------------ */
+/* Hero                                                                 */
+/* ------------------------------------------------------------------ */
+
+function EyebrowBadge({ className = "", children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className="bg-[#3cb9e5] content-stretch flex items-start px-[14px] py-[6px] relative rounded-[100px] shrink-0" data-name="eyebrow-badge">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#0a142f] text-[12px] uppercase whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        CONECTANDO EL FUTURO CREATIVO DE HONDURAS
-      </p>
+    <div className={`inline-flex items-start rounded-[100px] px-3.5 py-1.5 ${className}`} data-name="eyebrow-badge">
+      <p className="whitespace-normal font-bold leading-normal text-[#0a142f] text-[11px] uppercase sm:text-[12px]">{children}</p>
     </div>
   );
 }
 
 function HeroContentStack() {
   return (
-    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full" data-name="Hero-Content-Stack">
-      <EyebrowBadge />
-      <div className="[word-break:break-word] font-['Outfit:ExtraBold',sans-serif] font-extrabold leading-[0] min-w-full relative shrink-0 text-[56px] text-black w-[min-content]">
-        <p className="leading-[1.15] mb-0">Transforma tu empresa con</p>
-        <p className="leading-[1.15]">el mejor talento universitario.</p>
-      </div>
-      <p className="[word-break:break-word] font-['DM_Sans:Regular',sans-serif] font-normal leading-[1.6] relative shrink-0 text-[18px] text-black w-[720px]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Conectamos estudiantes hondureños de carreras creativas y tecnológicas con Mipymes que necesitan soluciones profesionales y con garantía de calidad.
+    <div className="relative flex w-full flex-col items-start gap-6" data-name="Hero-Content-Stack">
+      <EyebrowBadge className="bg-[#3cb9e5]">CONECTANDO EL FUTURO CREATIVO DE HONDURAS</EyebrowBadge>
+      <p className="font-extrabold leading-[1.15] text-black text-[28px] sm:text-[42px] lg:text-[56px]">
+        Transforma tu negocio con
+        <br className="hidden sm:inline" /> el mejor talento creativo.
+      </p>
+      <p className="max-w-[720px] font-normal leading-[1.6] text-black text-[16px] sm:text-[18px]">
+        Conectamos creativos hondureños con clientes —empresas, emprendimientos y personas— que necesitan soluciones profesionales y con garantía de calidad.
       </p>
     </div>
   );
 }
 
-function Button1() {
+function ButtonSoyCliente() {
   return (
-    <div className="bg-[#ffb53e] h-[48px] relative rounded-[12px] shrink-0 w-[238px]" data-name="button">
-      <p className="[word-break:break-word] absolute font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] left-[28px] text-[#0a142f] text-[15px] top-[14px] whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Soy Empresa (Contratar)
-      </p>
-    </div>
+    <Link to="/registro-clientes" className="flex h-12 w-full items-center justify-center rounded-[12px] bg-[#ffb53e] px-7 sm:w-auto" data-name="button">
+      <p className="font-bold leading-normal text-[#0a142f] text-[15px] whitespace-nowrap">Soy Cliente (Contratar)</p>
+    </Link>
   );
 }
 
-function Button2() {
+function ButtonSoyCreativo() {
   return (
-    <div className="bg-black content-stretch flex items-center justify-center px-[28px] py-[14px] relative rounded-[12px] shrink-0" data-name="button">
-      <div aria-hidden className="absolute border-2 border-[#0a142f] border-solid inset-0 pointer-events-none rounded-[12px]" />
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[15px] text-white whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Soy Estudiante (Unirme)
-      </p>
-    </div>
+    <Link to="/registro-creativos" className="flex h-12 w-full items-center justify-center rounded-[12px] border-2 border-[#0a142f] bg-black px-7 sm:w-auto" data-name="button">
+      <p className="font-bold leading-normal text-white text-[15px] whitespace-nowrap">Soy Creativo (Unirme)</p>
+    </Link>
   );
 }
 
 function HeroCtAs() {
   return (
-    <div className="content-stretch flex gap-[16px] items-start relative shrink-0" data-name="Hero-CTAs">
-      <Button1 />
-      <Button2 />
+    <div className="relative flex w-full flex-col items-stretch gap-4 sm:w-auto sm:flex-row sm:items-start" data-name="Hero-CTAs">
+      <ButtonSoyCliente />
+      <ButtonSoyCreativo />
     </div>
   );
 }
 
 function Hero() {
   return (
-    <div className="content-stretch flex flex-col gap-[32px] items-start px-[80px] py-[112px] relative shrink-0 w-full" data-name="Hero">
+    <div className="relative flex w-full shrink-0 flex-col items-start gap-8 overflow-hidden px-4 py-16 sm:px-6 sm:py-20 lg:px-20 lg:py-28" data-name="Hero">
       <div aria-hidden className="absolute inset-0 pointer-events-none">
         <img alt="" className="absolute max-w-none object-cover size-full" src={imgHero} />
-        <div className="absolute bg-[rgba(203,233,244,0.87)] inset-0" />
+        <div className="absolute inset-0 bg-[rgba(203,233,244,0.87)]" />
       </div>
       <HeroContentStack />
       <HeroCtAs />
@@ -132,860 +148,470 @@ function Hero() {
   );
 }
 
-function StatItem() {
-  return (
-    <div className="bg-white content-stretch flex flex-col items-center relative shrink-0 w-[781px]" data-name="stat-item">
-      <p className="[word-break:break-word] font-['Outfit:ExtraBold',sans-serif] font-extrabold leading-[normal] relative shrink-0 text-[#f59e0b] text-[48px] whitespace-nowrap">Conecta. Crea. Crece.</p>
-    </div>
-  );
-}
+/* ------------------------------------------------------------------ */
+/* Stats bar                                                           */
+/* ------------------------------------------------------------------ */
 
 function StatsBar() {
   return (
-    <div className="bg-white content-stretch flex items-center justify-between px-[80px] py-[40px] relative shrink-0 w-full" data-name="Stats-Bar">
-      <StatItem />
-      <div className="absolute h-[51px] right-[80px] top-[44.5px] w-[237px]" data-name="colmena-logo-normal 2">
+    <div className="flex w-full shrink-0 flex-col items-center justify-between gap-6 bg-white px-4 py-8 sm:px-6 lg:flex-row lg:px-20 lg:py-10" data-name="Stats-Bar">
+      <p className="text-center font-extrabold leading-normal text-[#f59e0b] text-[28px] sm:text-[36px] lg:text-[48px]">Conecta. Crea. Crece.</p>
+      <div className="relative h-[36px] w-[166px] shrink-0 lg:h-[51px] lg:w-[237px]" data-name="colmena-logo-normal 2">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-[320.1%] left-0 max-w-none top-[-109.52%] w-full" src={imgColmenaLogoNormal1} />
+          <img alt="Colmena" className="absolute h-[320.1%] left-0 max-w-none top-[-109.52%] w-full" src={imgColmenaLogoNormal1} />
         </div>
       </div>
     </div>
   );
 }
 
-function EyebrowBadge1() {
+/* ------------------------------------------------------------------ */
+/* How it works                                                        */
+/* ------------------------------------------------------------------ */
+
+/* Physical size of one hex cell — a real length (clamp of vw, not a bare
+   "%"), so the shape scales with viewport width consistently on both
+   axes. A "%" height computed from a "%" width breaks the moment a
+   section's own width:height ratio isn't 1:1 (e.g. a short, ultra-wide
+   desktop row), which is why the honeycomb rendered tiny before. */
+const HEX_UNIT = "clamp(64px, 6.5vw, 190px)";
+
+/* A single flat-top hexagon cell. x/y are the CENTER position (percent of
+   the container), offset by dxFactor/dyFactor hex-units so cells tile
+   into a true honeycomb regardless of container aspect ratio. */
+function HexCell({ cx, cy, dx, dy, color, opacity = 1 }: { cx: number; cy: number; dx: number; dy: number; color: string; opacity?: number }) {
+  const dyPx = (dy * 0.866 - 0.433).toFixed(4); // dy in hex-heights → hex-widths, minus half a cell to center it
+  const dxPx = (dx - 0.5).toFixed(4); // minus half a cell to center it
   return (
-    <div className="bg-[#ffd081] content-stretch flex items-start px-[14px] py-[6px] relative rounded-[100px] shrink-0" data-name="eyebrow-badge">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#0a142f] text-[12px] uppercase whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        PROCESO ÁGIL Y SEGURO
-      </p>
+    <svg
+      className="absolute"
+      style={{
+        left: `calc(${cx}% + (${dxPx}) * ${HEX_UNIT})`,
+        top: `calc(${cy}% + (${dyPx}) * ${HEX_UNIT})`,
+        width: HEX_UNIT,
+        aspectRatio: "100 / 86.6",
+      }}
+      viewBox="0 0 100 86.6"
+      fill="none"
+    >
+      <polygon points="25,0 75,0 100,43.3 75,86.6 25,86.6 0,43.3" fill={color} fillOpacity={opacity} />
+    </svg>
+  );
+}
+
+/* A tidy 7-cell honeycomb "flower" — one center cell plus its six true
+   hex neighbors, via axial hex-grid math — instead of a loose scattered
+   patch. dxFactor/dyFactor are in units of hexW/hexH from the center. */
+const HONEYCOMB_FLOWER: Array<{ dxFactor: number; dyFactor: number; color: string; opacity?: number }> = [
+  { dxFactor: 0, dyFactor: 0, color: "#d97706" },
+  { dxFactor: 0.75, dyFactor: 0.5, color: "#f59e0b" },
+  { dxFactor: 0.75, dyFactor: -0.5, color: "#ffd081" },
+  { dxFactor: 0, dyFactor: -1, color: "#f59e0b" },
+  { dxFactor: -0.75, dyFactor: -0.5, color: "#ffe8c2" },
+  { dxFactor: -0.75, dyFactor: 0.5, color: "#f59e0b" },
+  { dxFactor: 0, dyFactor: 1, color: "#ffd081" },
+];
+
+function HexFlower({ centerX, centerY, mirror = false }: { centerX: number; centerY: number; mirror?: boolean }) {
+  return (
+    <>
+      {HONEYCOMB_FLOWER.map(({ dxFactor, dyFactor, color, opacity }, i) => (
+        <HexCell key={i} cx={centerX} cy={centerY} dx={mirror ? -dxFactor : dxFactor} dy={dyFactor} color={color} opacity={opacity} />
+      ))}
+    </>
+  );
+}
+
+function HowItWorksDecor() {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden opacity-80 sm:opacity-100">
+      <HexFlower centerX={7} centerY={13} />
+      <HexFlower centerX={93} centerY={13} mirror />
     </div>
   );
 }
 
-function HeadingGroup() {
+function HeadingGroup({ eyebrow, eyebrowClassName, title, subtitle }: { eyebrow: string; eyebrowClassName: string; title: string; subtitle: string }) {
   return (
-    <div className="content-stretch flex flex-col gap-[16px] items-center relative shrink-0 w-full" data-name="Heading-Group">
-      <EyebrowBadge1 />
-      <p className="[word-break:break-word] font-['Outfit:ExtraBold',sans-serif] font-extrabold leading-[normal] min-w-full relative shrink-0 text-[#0a142f] text-[40px] text-center w-[min-content]">¿Cómo funciona Colmena?</p>
-      <p className="[word-break:break-word] font-['DM_Sans:Regular',sans-serif] font-normal leading-[normal] relative shrink-0 text-[16px] text-[rgba(0,0,0,0.69)] text-center w-[600px]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Diseñamos un flujo intuitivo para garantizar que tanto empresas como estudiantes obtengan el máximo valor en cada colaboración.
-      </p>
+    <div className="flex w-full flex-col items-center gap-4" data-name="Heading-Group">
+      <EyebrowBadge className={eyebrowClassName}>{eyebrow}</EyebrowBadge>
+      <p className="w-full text-center font-extrabold leading-normal text-[#0a142f] text-[26px] sm:text-[32px] lg:text-[40px]">{title}</p>
+      <p className="w-full max-w-[600px] text-center font-normal leading-normal text-[15px] text-[rgba(0,0,0,0.69)] sm:text-[16px]">{subtitle}</p>
     </div>
   );
 }
 
-function StepCard() {
+function StepCard({ number, title, description }: { number: string; title: string; description: string }) {
   return (
-    <div className="bg-[#ffdfad] content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-start min-w-px p-[32px] relative rounded-[16px]" data-name="Step-Card-01">
-      <p className="font-['Outfit:ExtraBold',sans-serif] font-extrabold leading-[normal] relative shrink-0 text-[#3c3c3c] text-[36px] whitespace-nowrap">01</p>
-      <p className="font-['Outfit:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[24px] text-black whitespace-nowrap">Publica tu necesidad</p>
-      <p className="font-['DM_Sans:Regular',sans-serif] font-normal leading-[1.6] min-w-full relative shrink-0 text-[15px] text-black w-[min-content]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Sube un proyecto detallando lo que tu empresa necesita: desde un logotipo hasta una campaña de redes sociales.
-      </p>
-    </div>
-  );
-}
-
-function StepCard1() {
-  return (
-    <div className="bg-[#ffdfad] content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-start min-w-px p-[32px] relative rounded-[16px]" data-name="Step-Card-02">
-      <p className="font-['Outfit:ExtraBold',sans-serif] font-extrabold leading-[normal] relative shrink-0 text-[#3c3c3c] text-[36px] whitespace-nowrap">02</p>
-      <p className="font-['Outfit:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[24px] text-black whitespace-nowrap">Conecta con talento</p>
-      <p className="font-['DM_Sans:Regular',sans-serif] font-normal leading-[1.6] min-w-full relative shrink-0 text-[15px] text-black w-[min-content]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Recibe propuestas de duplas de estudiantes universitarios respaldados por tutores académicos calificados.
-      </p>
-    </div>
-  );
-}
-
-function StepCard2() {
-  return (
-    <div className="bg-[#ffdfad] content-stretch flex flex-[1_0_0] flex-col gap-[20px] items-start min-w-px p-[32px] relative rounded-[16px]" data-name="Step-Card-03">
-      <p className="font-['Outfit:ExtraBold',sans-serif] font-extrabold leading-[normal] relative shrink-0 text-[#3c3c3c] text-[36px] whitespace-nowrap">03</p>
-      <p className="font-['Outfit:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[24px] text-black whitespace-nowrap">Recibe soluciones</p>
-      <p className="font-['DM_Sans:Regular',sans-serif] font-normal leading-[1.6] min-w-full relative shrink-0 text-[15px] text-black w-[min-content]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Colabora de forma segura a través de nuestra plataforma y obtén resultados profesionales listos para implementar.
-      </p>
+    <div className="flex w-full flex-1 flex-col items-start gap-5 rounded-[16px] bg-[#ffdfad] p-6 sm:p-8" data-name={`Step-Card-${number}`}>
+      <p className="font-extrabold leading-normal text-[#3c3c3c] text-[30px] sm:text-[36px]">{number}</p>
+      <p className="font-bold leading-normal text-black text-[20px] sm:text-[24px]">{title}</p>
+      <p className="font-normal leading-[1.6] text-black text-[15px]">{description}</p>
     </div>
   );
 }
 
 function StepsRow() {
   return (
-    <div className="[word-break:break-word] content-stretch flex gap-[32px] items-start relative shrink-0 w-full" data-name="Steps-Row">
-      <StepCard />
-      <StepCard1 />
-      <StepCard2 />
-    </div>
-  );
-}
-
-function Group1() {
-  return (
-    <div className="absolute contents left-[167px] top-[77.37px]">
-      <div className="absolute left-[167px] size-[165px] top-[77.37px]" data-name="image 12">
-        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImage11} />
-      </div>
+    <div className="flex w-full flex-col items-stretch gap-6 sm:flex-row" data-name="Steps-Row">
+      <StepCard number="01" title="Publica tu necesidad" description="Sube un proyecto detallando lo que necesitas: desde un logotipo hasta una campaña de redes sociales." />
+      <StepCard number="02" title="Conecta con talento" description="Recibe propuestas de creativos talentosos, listos para dar vida a tu proyecto con calidad profesional." />
+      <StepCard number="03" title="Recibe soluciones" description="Colabora de forma segura a través de nuestra plataforma y obtén resultados profesionales listos para implementar." />
     </div>
   );
 }
 
 function HowItWorks() {
   return (
-    <div className="bg-[#ffb53e] content-stretch flex flex-col gap-[103px] h-[665px] items-start pb-[104px] pt-[77px] px-[80px] relative shrink-0 w-full" data-name="How-It-Works">
-      <div className="absolute h-[55px] left-[54px] top-[0.37px] w-[165px]" data-name="image 11">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-[300%] left-0 max-w-none top-[-200%] w-full" src={imgImage11} />
-        </div>
+    <div id="como-funciona" className="relative flex w-full shrink-0 flex-col items-center gap-10 overflow-hidden bg-[#ffb53e] px-4 py-16 sm:px-6 lg:gap-16 lg:px-20 lg:py-24" data-name="How-It-Works">
+      <HowItWorksDecor />
+      <div className="relative w-full max-w-[900px]">
+        <HeadingGroup
+          eyebrow="PROCESO ÁGIL Y SEGURO"
+          eyebrowClassName="bg-[#ffd081]"
+          title="¿Cómo funciona Colmena?"
+          subtitle="Diseñamos un flujo intuitivo para garantizar que tanto clientes como creativos obtengan el máximo valor en cada colaboración."
+        />
       </div>
-      <div className="absolute bg-[#ffd081] inset-[41.11%_33px_-5.92%_33px] rounded-[45px]" />
-      <HeadingGroup />
-      <div className="absolute right-[125px] size-[165px] top-[-18.63px]" data-name="image 4">
-        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImage11} />
-      </div>
-      <div className="absolute h-[82px] right-[17px] top-[0.37px] w-[165px]" data-name="image 7">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-[201.22%] left-0 max-w-none top-[-101.22%] w-full" src={imgImage11} />
-        </div>
-      </div>
-      <div className="absolute right-[17px] size-[165px] top-[43.37px]" data-name="image 5">
-        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImage11} />
-      </div>
-      <div className="absolute right-[125px] size-[165px] top-[105.37px]" data-name="image 6">
-        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImage11} />
-      </div>
-      <div className="absolute right-[234px] size-[165px] top-[43.37px]" data-name="image 13">
-        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImage11} />
-      </div>
-      <div className="absolute h-[174px] right-0 top-[-27.63px] w-[74px]" data-name="image 16">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-[94.83%] left-0 max-w-none top-[5.17%] w-[222.97%]" src={imgImage11} />
-        </div>
-      </div>
-      <StepsRow />
-      <div className="absolute h-[121px] left-0 top-[0.37px] w-[115px]" data-name="image 8">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-[136.36%] left-[-43.48%] max-w-none top-[-36.36%] w-[143.48%]" src={imgImage11} />
-        </div>
-      </div>
-      <div className="absolute left-[58px] size-[165px] top-[16.37px]" data-name="image 9">
-        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImage11} />
-      </div>
-      <div className="absolute left-[270px] size-[165px] top-[16.37px]" data-name="image 12">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute left-[2.32%] max-w-none size-full top-[-1.66%]" src={imgImage11} />
-        </div>
-      </div>
-      <Group1 />
-      <div className="absolute h-[165px] left-0 top-[77.37px] w-[115px]" data-name="image 10">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-full left-[-43.56%] max-w-none top-[2.32%] w-[143.48%]" src={imgImage11} />
-        </div>
+      <div className="relative w-full">
+        <StepsRow />
       </div>
     </div>
   );
 }
 
-function EyebrowBadge2() {
-  return (
-    <div className="bg-[#fef3c7] content-stretch flex items-start px-[14px] py-[6px] relative rounded-[100px] shrink-0" data-name="eyebrow-badge">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#0a142f] text-[12px] uppercase whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        SOLUCIONES PARA MIPYMES
-      </p>
-    </div>
-  );
-}
-
-function Frame() {
-  return (
-    <div className="absolute content-stretch flex flex-col gap-[16px] h-[473.799px] items-start left-[154px] right-[674.13px] top-[71.37px]" data-name="Frame">
-      <EyebrowBadge2 />
-      <p className="[word-break:break-word] font-['Outfit:ExtraBold',sans-serif] font-extrabold leading-[normal] min-w-full relative shrink-0 text-[#0a142f] text-[40px] w-[min-content]">Impulsa tu negocio con ideas frescas y profesionales</p>
-      <p className="[word-break:break-word] font-['DM_Sans:Regular',sans-serif] font-normal leading-[0] min-w-full relative shrink-0 text-[#475569] text-[0px] w-[min-content]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        <span className="leading-[1.6] text-[20px]">{`Entendemos que las Mipymes necesitan crecer sin comprometer su presupuesto. `}</span>
-        <span className="font-['DM_Sans:Bold',sans-serif] font-bold leading-[1.6] text-[20px]" style={{ fontVariationSettings: '"opsz" 14' }}>
-          Colmena
-        </span>
-        <span className="leading-[1.6] text-[20px]">{` te da acceso directo al nuevo ecosistema de creativos en Honduras.`}</span>
-      </p>
-    </div>
-  );
-}
+/* ------------------------------------------------------------------ */
+/* Benefits — Clientes                                                 */
+/* ------------------------------------------------------------------ */
 
 function Check() {
   return (
-    <div className="relative shrink-0 size-[14px]" data-name="check">
-      <svg className="absolute block inset-0 size-full" fill="none" height="14" preserveAspectRatio="none" viewBox="0 0 14 14" width="14">
-        <g id="check">
-          <path d={svgPaths.p27200700} id="Vector" stroke="#0A142F" strokeLinecap="round" strokeWidth="2" />
-        </g>
-      </svg>
-    </div>
+    <svg className="block size-[14px] shrink-0" fill="none" viewBox="0 0 14 14">
+      <path d={svgPaths.p27200700} stroke="#0A142F" strokeLinecap="round" strokeWidth="2" />
+    </svg>
   );
 }
 
-function Frame2() {
+function BulletItem({ icon, label, badgeClassName }: { icon: React.ReactNode; label: string; badgeClassName: string }) {
   return (
-    <div className="bg-[#fef3c7] content-stretch flex items-center justify-center relative rounded-[14px] shrink-0 size-[28px]" data-name="Frame">
-      <Check />
-    </div>
-  );
-}
-
-function Frame3() {
-  return (
-    <div className="content-stretch flex flex-[1_0_0] flex-col items-start min-w-px relative" data-name="Frame">
-      <p className="[word-break:break-word] font-['Outfit:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#0a142f] text-[20px] whitespace-nowrap">Talento de Calidad</p>
-    </div>
-  );
-}
-
-function Frame1() {
-  return (
-    <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-name="Frame">
-      <Frame2 />
-      <Frame3 />
-    </div>
-  );
-}
-
-function Check1() {
-  return (
-    <div className="relative shrink-0 size-[14px]" data-name="check">
-      <svg className="absolute block inset-0 size-full" fill="none" height="14" preserveAspectRatio="none" viewBox="0 0 14 14" width="14">
-        <g id="check">
-          <path d={svgPaths.p27200700} id="Vector" stroke="#0A142F" strokeLinecap="round" strokeWidth="2" />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-function Frame5() {
-  return (
-    <div className="bg-[#fef3c7] content-stretch flex items-center justify-center relative rounded-[14px] shrink-0 size-[28px]" data-name="Frame">
-      <Check1 />
-    </div>
-  );
-}
-
-function Frame6() {
-  return (
-    <div className="content-stretch flex flex-[1_0_0] flex-col items-start min-w-px relative" data-name="Frame">
-      <p className="[word-break:break-word] font-['Outfit:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#0a142f] text-[20px] whitespace-nowrap">Precios Accesibles</p>
-    </div>
-  );
-}
-
-function Frame4() {
-  return (
-    <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-name="Frame">
-      <Frame5 />
-      <Frame6 />
-    </div>
-  );
-}
-
-function Check2() {
-  return (
-    <div className="relative shrink-0 size-[14px]" data-name="check">
-      <svg className="absolute block inset-0 size-full" fill="none" height="14" preserveAspectRatio="none" viewBox="0 0 14 14" width="14">
-        <g id="check">
-          <path d={svgPaths.p27200700} id="Vector" stroke="#0A142F" strokeLinecap="round" strokeWidth="2" />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-function Frame8() {
-  return (
-    <div className="bg-[#fef3c7] content-stretch flex items-center justify-center relative rounded-[14px] shrink-0 size-[28px]" data-name="Frame">
-      <Check2 />
-    </div>
-  );
-}
-
-function Frame9() {
-  return (
-    <div className="content-stretch flex flex-[1_0_0] flex-col items-start min-w-px relative" data-name="Frame">
-      <p className="[word-break:break-word] font-['Outfit:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#0a142f] text-[20px] whitespace-nowrap">Proceso Seguro</p>
-    </div>
-  );
-}
-
-function Frame7() {
-  return (
-    <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-name="Frame">
-      <Frame8 />
-      <Frame9 />
-    </div>
-  );
-}
-
-function Bullets() {
-  return (
-    <div className="absolute content-stretch flex flex-col gap-[16px] h-[116.938px] items-start left-[154px] right-[529.17px] top-[328.43px]" data-name="Bullets">
-      <Frame1 />
-      <Frame4 />
-      <Frame7 />
-    </div>
-  );
-}
-
-function Button3() {
-  return (
-    <div className="absolute bg-black content-stretch flex h-[48.388px] items-center justify-center left-[154px] px-[28px] py-[14px] rounded-[12px] top-[496.78px] w-[486.946px]" data-name="button">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#f8fafc] text-[15px] whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Quiero contratar talento
-      </p>
-    </div>
-  );
-}
-
-function Group() {
-  return (
-    <div className="absolute contents left-[154px] top-[71.37px]">
-      <Frame />
-      <Bullets />
-      <Button3 />
+    <div className="flex items-center gap-4" data-name="Frame">
+      <div className={`flex size-7 shrink-0 items-center justify-center rounded-[14px] ${badgeClassName}`}>{icon}</div>
+      <p className="font-bold leading-normal text-[#0a142f] text-[16px] sm:text-[20px]">{label}</p>
     </div>
   );
 }
 
 function BenefitsMipymes() {
   return (
-    <div className="bg-white h-[630px] relative shrink-0 w-full" data-name="Benefits-Mipymes">
-      <Group />
-      <div className="absolute h-[225px] right-[649px] top-[380.37px] w-[247px]" data-name="image 1">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-[359.7%] left-[-9.04%] max-w-none top-[-70.79%] w-[245.74%]" src={imgImage1} />
+    <div id="clientes" className="relative w-full shrink-0 overflow-hidden bg-white" data-name="Benefits-Mipymes">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <svg className="absolute right-[4%] top-[6%] hidden size-[130px] sm:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#CBE9F4" fillOpacity="0.81" r="145.5" />
+        </svg>
+        <svg className="absolute left-[4%] top-[10%] hidden size-[90px] lg:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#FFDFAD" r="145.5" />
+        </svg>
+        <svg className="absolute bottom-[8%] right-[6%] hidden size-[130px] sm:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#CBE9F4" fillOpacity="0.55" r="145.5" />
+        </svg>
+        <svg className="absolute left-[3%] bottom-[16%] hidden size-[60px] lg:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#3cb9e5" fillOpacity="0.35" r="145.5" />
+        </svg>
+        <svg className="absolute right-[30%] top-[4%] hidden size-[46px] xl:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#ffb53e" fillOpacity="0.6" r="145.5" />
+        </svg>
+        <svg className="absolute right-[3%] top-[40%] hidden size-[54px] lg:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#FFDFAD" fillOpacity="0.9" r="145.5" />
+        </svg>
+        <svg className="absolute left-[28%] bottom-[5%] hidden size-[64px] xl:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#CBE9F4" fillOpacity="0.7" r="145.5" />
+        </svg>
+        <svg className="absolute left-[16%] top-[3%] hidden size-[40px] xl:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#ffb53e" fillOpacity="0.45" r="145.5" />
+        </svg>
+        <svg className="absolute left-[46%] bottom-[3%] hidden size-[36px] xl:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#3cb9e5" fillOpacity="0.5" r="145.5" />
+        </svg>
+      </div>
+
+      <div className="relative mx-auto flex w-full max-w-[1400px] flex-col items-center gap-10 px-4 py-14 sm:px-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-16 lg:px-20 lg:py-24">
+        <div className="flex w-full flex-col items-start gap-8 lg:max-w-[520px] lg:justify-self-start">
+          <EyebrowBadge className="bg-[#fef3c7]">SOLUCIONES PARA CLIENTES</EyebrowBadge>
+          <p className="font-extrabold leading-normal text-[#0a142f] text-[26px] sm:text-[32px] lg:text-[40px]">Impulsa tu negocio con ideas frescas y profesionales</p>
+          <p className="font-normal leading-[1.6] text-[#475569] text-[16px] sm:text-[20px]">
+            Entendemos que los clientes necesitan crecer sin comprometer su presupuesto.{" "}
+            <span className="font-bold">Colmena</span> te da acceso directo al nuevo ecosistema de creativos en Honduras.
+          </p>
+
+          <div className="flex w-full flex-col items-start gap-4">
+            <BulletItem icon={<Check />} label="Talento de Calidad" badgeClassName="bg-[#fef3c7]" />
+            <BulletItem icon={<Check />} label="Precios Accesibles" badgeClassName="bg-[#fef3c7]" />
+            <BulletItem icon={<Check />} label="Proceso Seguro" badgeClassName="bg-[#fef3c7]" />
+          </div>
+
+          <Link to="/registro-clientes" className="flex w-full items-center justify-center rounded-[12px] bg-black px-7 py-3.5 sm:w-auto" data-name="button">
+            <p className="font-bold leading-normal text-[#f8fafc] text-[15px] whitespace-nowrap">Quiero contratar talento</p>
+          </Link>
         </div>
-      </div>
-      <div className="absolute right-[226px] size-[291px] top-[220.37px]">
-        <svg className="absolute block inset-0 size-full" fill="none" height="291" preserveAspectRatio="none" viewBox="0 0 291 291" width="291">
-          <circle cx="145.5" cy="145.5" fill="#CBE9F4" fillOpacity="0.81" id="Ellipse 2" r="145.5" />
-        </svg>
-      </div>
-      <div className="-translate-y-1/2 absolute aspect-[275/281] left-[993px] right-[371px] top-[calc(50%+51.37px)]" data-name="image 2">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-[271.96%] left-[-94.44%] max-w-none top-[-33.84%] w-[208.64%]" src={imgImage1} />
+
+        <div className="relative flex w-full max-w-[500px] items-center justify-center lg:max-w-none">
+          <img alt="Ilustración de negocios en Colmena" className="relative w-full max-w-[640px] object-contain" src={imgImage1} />
         </div>
-      </div>
-      <div className="absolute right-[-100px] size-[291px] top-[-0.63px]">
-        <svg className="absolute block inset-0 size-full" fill="none" height="291" preserveAspectRatio="none" viewBox="0 0 291 291" width="291">
-          <circle cx="145.5" cy="145.5" fill="#CBE9F4" fillOpacity="0.81" id="Ellipse 3" r="145.5" />
-        </svg>
-      </div>
-      <div className="absolute h-[330px] right-[33px] top-[42.37px] w-[447px]" data-name="image 3">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-[231.58%] left-[-17.94%] max-w-none top-[-114.72%] w-[128.36%]" src={imgImage1} />
-        </div>
-      </div>
-      <div className="absolute h-[633px] left-0 top-[-0.63px] w-[119px]">
-        <svg className="absolute block inset-0 size-full" fill="none" height="633" preserveAspectRatio="none" viewBox="0 0 119 633" width="119">
-          <path d={svgPaths.pa876000} fill="#CBE9F4" fillOpacity="0.81" id="Rectangle 1" />
-        </svg>
-      </div>
-      <div className="absolute h-[633px] left-0 top-[-0.63px] w-[119px]">
-        <svg className="absolute block inset-0 size-full" fill="none" height="633" preserveAspectRatio="none" viewBox="0 0 119 633" width="119">
-          <path d={svgPaths.pa876000} fill="#CBE9F4" fillOpacity="0.81" id="Rectangle 1" />
-        </svg>
       </div>
     </div>
   );
 }
 
-function Frame10() {
-  return (
-    <div className="[word-break:break-word] absolute content-stretch flex flex-col gap-[16px] items-start left-[747px] text-right top-[160.37px] w-[733px]" data-name="Frame">
-      <p className="font-['Outfit:ExtraBold',sans-serif] font-extrabold leading-[normal] relative shrink-0 text-[#0a142f] text-[40px] w-full">Construye tu futuro profesional antes de graduarte</p>
-      <p className="font-['DM_Sans:Regular',sans-serif] font-normal leading-[0] relative shrink-0 text-[#475569] text-[20px] w-full" style={{ fontVariationSettings: '"opsz" 14' }}>
-        <span className="leading-[1.6]">{`No dejes que la falta de experiencia te detenga al graduarte. `}</span>
-        <span className="font-['DM_Sans:Bold',sans-serif] font-bold leading-[1.6]" style={{ fontVariationSettings: '"opsz" 14' }}>
-          Colmena
-        </span>
-        <span className="leading-[1.6]">{` te permite aplicar tus conocimientos teóricos en proyectos comerciales reales mientras estudias.`}</span>
-      </p>
-    </div>
-  );
-}
-
-function EyebrowBadge3() {
-  return (
-    <div className="absolute bg-[rgba(203,233,244,0.81)] content-stretch flex items-start left-[1222px] px-[14px] py-[6px] rounded-[100px] top-[113.37px]" data-name="eyebrow-badge">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#0a142f] text-[12px] uppercase whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        OPORTUNIDADES PARA ESTUDIANTES
-      </p>
-    </div>
-  );
-}
+/* ------------------------------------------------------------------ */
+/* Benefits — Creativos                                                */
+/* ------------------------------------------------------------------ */
 
 function Star() {
   return (
-    <div className="relative shrink-0 size-[14px]" data-name="star">
-      <svg className="absolute block inset-0 size-full" fill="none" height="14" preserveAspectRatio="none" viewBox="0 0 14 14" width="14">
-        <g clipPath="url(#clip0_0_12)" id="star">
-          <path d={svgPaths.p2145d0f0} id="Vector" stroke="#0A142F" strokeLinecap="round" strokeWidth="2" />
-        </g>
-        <defs>
-          <clipPath id="clip0_0_12">
-            <rect fill="white" height="14" width="14" />
-          </clipPath>
-        </defs>
-      </svg>
-    </div>
-  );
-}
-
-function Frame12() {
-  return (
-    <div className="bg-[rgba(203,233,244,0.81)] content-stretch flex items-center justify-center relative rounded-[14px] shrink-0 size-[28px]" data-name="Frame">
-      <Star />
-    </div>
-  );
-}
-
-function Frame13() {
-  return (
-    <div className="content-stretch flex flex-[1_0_0] flex-col h-[20px] items-start min-w-px relative" data-name="Frame">
-      <p className="-translate-x-full [word-break:break-word] absolute font-['Outfit:Bold',sans-serif] font-bold leading-[normal] left-[111px] text-[#0a142f] text-[16px] text-right top-0 whitespace-nowrap">Portafolio Real</p>
-    </div>
-  );
-}
-
-function Frame11() {
-  return (
-    <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-name="Frame">
-      <Frame12 />
-      <Frame13 />
-    </div>
-  );
-}
-
-function Star1() {
-  return (
-    <div className="relative shrink-0 size-[14px]" data-name="star">
-      <svg className="absolute block inset-0 size-full" fill="none" height="14" preserveAspectRatio="none" viewBox="0 0 14 14" width="14">
-        <g clipPath="url(#clip0_0_12)" id="star">
-          <path d={svgPaths.p2145d0f0} id="Vector" stroke="#0A142F" strokeLinecap="round" strokeWidth="2" />
-        </g>
-        <defs>
-          <clipPath id="clip0_0_12">
-            <rect fill="white" height="14" width="14" />
-          </clipPath>
-        </defs>
-      </svg>
-    </div>
-  );
-}
-
-function Frame15() {
-  return (
-    <div className="bg-[rgba(203,233,244,0.81)] content-stretch flex items-center justify-center relative rounded-[14px] shrink-0 size-[28px]" data-name="Frame">
-      <Star1 />
-    </div>
-  );
-}
-
-function Frame16() {
-  return (
-    <div className="content-stretch flex flex-[1_0_0] flex-col items-start min-w-px relative" data-name="Frame">
-      <p className="[word-break:break-word] font-['Outfit:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#0a142f] text-[16px] whitespace-nowrap">Ingresos Adicionales</p>
-    </div>
-  );
-}
-
-function Frame14() {
-  return (
-    <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-name="Frame">
-      <Frame15 />
-      <Frame16 />
-    </div>
-  );
-}
-
-function Star2() {
-  return (
-    <div className="relative shrink-0 size-[14px]" data-name="star">
-      <svg className="absolute block inset-0 size-full" fill="none" height="14" preserveAspectRatio="none" viewBox="0 0 14 14" width="14">
-        <g clipPath="url(#clip0_0_12)" id="star">
-          <path d={svgPaths.p2145d0f0} id="Vector" stroke="#0A142F" strokeLinecap="round" strokeWidth="2" />
-        </g>
-        <defs>
-          <clipPath id="clip0_0_12">
-            <rect fill="white" height="14" width="14" />
-          </clipPath>
-        </defs>
-      </svg>
-    </div>
-  );
-}
-
-function Frame18() {
-  return (
-    <div className="bg-[rgba(203,233,244,0.81)] content-stretch flex items-center justify-center relative rounded-[14px] shrink-0 size-[28px]" data-name="Frame">
-      <Star2 />
-    </div>
-  );
-}
-
-function Frame19() {
-  return (
-    <div className="content-stretch flex flex-[1_0_0] flex-col items-start min-w-px relative" data-name="Frame">
-      <p className="[word-break:break-word] font-['Outfit:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#0a142f] text-[16px] whitespace-nowrap">Networking Efectivo</p>
-    </div>
-  );
-}
-
-function Frame17() {
-  return (
-    <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-name="Frame">
-      <Frame18 />
-      <Frame19 />
-    </div>
-  );
-}
-
-function Bullets1() {
-  return (
-    <div className="absolute content-stretch flex flex-col gap-[16px] items-start left-[1279px] top-[406.37px] w-[214px]" data-name="Bullets">
-      <Frame11 />
-      <Frame14 />
-      <Frame17 />
-    </div>
+    <svg className="block size-[14px] shrink-0" fill="none" viewBox="0 0 14 14">
+      <g clipPath="url(#star-clip)">
+        <path d={svgPaths.p2145d0f0} stroke="#0A142F" strokeLinecap="round" strokeWidth="2" />
+      </g>
+      <defs>
+        <clipPath id="star-clip">
+          <rect fill="white" height="14" width="14" />
+        </clipPath>
+      </defs>
+    </svg>
   );
 }
 
 function BenefitsStudents() {
   return (
-    <div className="bg-white content-stretch flex gap-[32px] h-[695px] items-center px-[80px] py-[104px] relative shrink-0 w-[451px]" data-name="Benefits-Students">
-      <Frame10 />
-      <EyebrowBadge3 />
-      <Bullets1 />
-      <div className="absolute left-[-52px] size-[291px] top-[-40.63px]">
-        <svg className="absolute block inset-0 size-full" fill="none" height="291" preserveAspectRatio="none" viewBox="0 0 291 291" width="291">
-          <circle cx="145.5" cy="145.5" fill="#FFDFAD" id="Ellipse 5" r="145.5" />
+    <div id="creativos" className="relative w-full shrink-0 overflow-hidden bg-white" data-name="Benefits-Students">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <svg className="absolute left-[3%] top-[6%] hidden size-[130px] sm:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#FFDFAD" r="145.5" />
+        </svg>
+        <svg className="absolute bottom-[8%] right-[4%] hidden size-[130px] sm:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#FFDFAD" r="145.5" />
+        </svg>
+        <svg className="absolute bottom-[10%] left-[10%] hidden size-[100px] lg:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#CBE9F4" fillOpacity="0.7" r="145.5" />
+        </svg>
+        <svg className="absolute right-[6%] top-[8%] hidden size-[70px] xl:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#FFDFAD" r="145.5" />
+        </svg>
+        <svg className="absolute left-[26%] top-[6%] hidden size-[50px] lg:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#ffb53e" fillOpacity="0.55" r="145.5" />
+        </svg>
+        <svg className="absolute right-[3%] bottom-[30%] hidden size-[58px] xl:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#3cb9e5" fillOpacity="0.4" r="145.5" />
+        </svg>
+        <svg className="absolute left-[18%] top-[38%] hidden size-[40px] xl:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#ffb53e" fillOpacity="0.45" r="145.5" />
+        </svg>
+        <svg className="absolute right-[24%] bottom-[6%] hidden size-[46px] xl:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#3cb9e5" fillOpacity="0.4" r="145.5" />
+        </svg>
+        <svg className="absolute left-[4%] top-[36%] hidden size-[64px] xl:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#CBE9F4" fillOpacity="0.75" r="145.5" />
+        </svg>
+        <svg className="absolute right-[32%] bottom-[6%] hidden size-[46px] xl:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#FFDFAD" fillOpacity="0.9" r="145.5" />
         </svg>
       </div>
-      <div className="absolute h-[274px] left-[239px] top-[289.37px] w-[291px]">
-        <svg className="absolute block inset-0 size-full" fill="none" height="274" preserveAspectRatio="none" viewBox="0 0 291 274" width="291">
-          <ellipse cx="145.5" cy="137" fill="#FFDFAD" id="Ellipse 7" rx="145.5" ry="137" />
-        </svg>
+
+      <div className="relative mx-auto flex w-full max-w-[1400px] flex-col items-center gap-10 px-4 py-14 text-center sm:px-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-16 lg:px-20 lg:py-24 lg:text-right">
+        <div className="relative flex w-full max-w-[500px] items-center justify-center lg:max-w-none">
+          <img alt="Creativos hondureños trabajando con Colmena" className="relative w-full max-w-[640px] object-contain" src={imgImage17} />
+        </div>
+
+        <div className="flex w-full flex-col items-center gap-6 lg:max-w-[520px] lg:items-end lg:justify-self-end">
+          <EyebrowBadge className="bg-[rgba(203,233,244,0.81)]">OPORTUNIDADES PARA CREATIVOS</EyebrowBadge>
+          <p className="font-extrabold leading-normal text-[#0a142f] text-[26px] sm:text-[32px] lg:text-[40px]">Impulsa tu carrera creativa con proyectos reales</p>
+          <p className="font-normal leading-[1.6] text-[#475569] text-[16px] sm:text-[20px]">
+            No dejes que la falta de experiencia te detenga.{" "}
+            <span className="font-bold">Colmena</span> te permite aplicar tus habilidades creativas en proyectos comerciales reales y construir tu portafolio.
+          </p>
+
+          <div className="flex w-full flex-col items-center gap-4 lg:items-end">
+            <BulletItem icon={<Star />} label="Portafolio Real" badgeClassName="bg-[rgba(203,233,244,0.81)]" />
+            <BulletItem icon={<Star />} label="Ingresos Adicionales" badgeClassName="bg-[rgba(203,233,244,0.81)]" />
+            <BulletItem icon={<Star />} label="Networking Efectivo" badgeClassName="bg-[rgba(203,233,244,0.81)]" />
+          </div>
+
+          <Link to="/registro-creativos" className="flex w-full items-center justify-center rounded-[12px] bg-black px-7 py-3.5 sm:w-auto" data-name="button">
+            <p className="font-bold leading-normal text-[#f8fafc] text-[15px] whitespace-nowrap">Quiero ofrecer mis servicios</p>
+          </Link>
+        </div>
       </div>
     </div>
   );
 }
 
-function EyebrowBadge4() {
+/* ------------------------------------------------------------------ */
+/* Planes / Categorías                                                 */
+/* ------------------------------------------------------------------ */
+
+function PlanButton() {
   return (
-    <div className="bg-[#ffb53e] content-stretch flex items-start px-[14px] py-[6px] relative rounded-[100px] shrink-0" data-name="eyebrow-badge">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#0a142f] text-[12px] uppercase whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Funcionalidades pro
-      </p>
+    <div className="flex w-full items-center justify-center rounded-[12px] bg-black px-7 py-3.5" data-name="button">
+      <p className="font-bold leading-normal text-[#f8fafc] text-[15px] whitespace-nowrap">Seleccionar</p>
     </div>
   );
 }
 
-function HeadingGroup1() {
+function CategoryCard({
+  bgClassName,
+  planName,
+  price,
+  period,
+  features,
+}: {
+  bgClassName: string;
+  planName: string;
+  price: string;
+  period: string;
+  features: string[];
+}) {
   return (
-    <div className="content-stretch flex flex-col gap-[16px] items-center relative shrink-0 w-full" data-name="Heading-Group">
-      <EyebrowBadge4 />
-      <p className="[word-break:break-word] font-['Outfit:ExtraBold',sans-serif] font-extrabold leading-[normal] min-w-full relative shrink-0 text-[#0a142f] text-[40px] text-center w-[min-content]">{`Planes Colmena `}</p>
-      <p className="[word-break:break-word] font-['DM_Sans:Regular',sans-serif] font-normal leading-[normal] relative shrink-0 text-[#475569] text-[20px] text-center w-[600px]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Selecciona el plan que más se adhiera a tus necesidades.
+    <div className={`relative flex w-full flex-col items-start gap-5 rounded-[16px] border border-[#e2e8f0] p-6 ${bgClassName}`} data-name={`Category-Card-${planName}`}>
+      <p className="font-bold leading-normal text-[#0a142f] text-[22px] sm:text-[23px]">{planName}</p>
+      <p className="flex items-baseline gap-1 leading-[1.5] text-black">
+        <span className="font-extrabold text-[42px] sm:text-[55px]">{price}</span>
+        <span className="font-extrabold text-[26px] sm:text-[32px]">{period}</span>
       </p>
+      <ul className="list-disc space-y-1 pl-5 font-normal text-[14px] text-[rgba(0,0,0,0.71)]">
+        {features.map((f) => (
+          <li key={f} className="leading-[1.5]">
+            {f}
+          </li>
+        ))}
+      </ul>
+      <PlanButton />
     </div>
   );
 }
 
-function Button4() {
+function CategoryGroupLabel({ className, children }: { className: string; children: React.ReactNode }) {
   return (
-    <div className="bg-black content-stretch flex items-center justify-center px-[28px] py-[14px] relative rounded-[12px] shrink-0 w-full" data-name="button">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#f8fafc] text-[15px] whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Seleccionar
-      </p>
-    </div>
-  );
-}
-
-function CategoryCard() {
-  return (
-    <div className="bg-[#ffd081] col-1 content-stretch flex flex-col gap-[22px] items-start justify-self-stretch p-[24px] relative rounded-[16px] row-1 self-stretch shrink-0" data-name="Category-Card-0">
-      <div aria-hidden className="absolute border border-[#e2e8f0] border-solid inset-0 pointer-events-none rounded-[16px]" />
-      <p className="[word-break:break-word] font-['Outfit:Bold',sans-serif] font-bold leading-[normal] min-w-full relative shrink-0 text-[#0a142f] text-[23px] w-[min-content]">Gratuito</p>
-      <p className="[word-break:break-word] font-['Doppio_One:Regular',sans-serif] leading-[0] not-italic relative shrink-0 text-[0px] text-black whitespace-nowrap">
-        <span className="leading-[1.5] text-[55px]">L. 0</span>
-        <span className="leading-[1.5] text-[36px]">/mes</span>
-      </p>
-      <div className="[word-break:break-word] font-['DM_Sans:Regular',sans-serif] font-normal leading-[0] min-w-full relative shrink-0 text-[14px] text-[rgba(0,0,0,0.71)] w-[min-content]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        <ul className="list-disc mb-0">
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Perfil profesional</span>
-          </li>
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Portafolio</span>
-          </li>
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Explorar proyectos</span>
-          </li>
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Eviar propuestas</span>
-          </li>
-          <li className="ms-[21px]">
-            <span className="leading-[1.5]">Pagos protegidos</span>
-          </li>
-        </ul>
-        <p className="leading-[1.5]">​</p>
-      </div>
-      <Button4 />
-    </div>
-  );
-}
-
-function Button5() {
-  return (
-    <div className="bg-black content-stretch flex items-center justify-center px-[28px] py-[14px] relative rounded-[12px] shrink-0 w-full" data-name="button">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#f8fafc] text-[15px] whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Seleccionar
-      </p>
-    </div>
-  );
-}
-
-function CategoryCard1() {
-  return (
-    <div className="bg-[rgba(251,170,35,0.87)] col-2 content-stretch flex flex-col gap-[22px] items-start justify-self-stretch p-[24px] relative rounded-[16px] row-1 self-stretch shrink-0" data-name="Category-Card-1">
-      <div aria-hidden className="absolute border border-[#e2e8f0] border-solid inset-0 pointer-events-none rounded-[16px]" />
-      <p className="[word-break:break-word] font-['Outfit:Bold',sans-serif] font-bold leading-[normal] min-w-full relative shrink-0 text-[#0a142f] text-[23px] w-[min-content]">Colmena PRO</p>
-      <p className="[word-break:break-word] font-['Doppio_One:Regular',sans-serif] leading-[0] not-italic relative shrink-0 text-[0px] text-black whitespace-nowrap">
-        <span className="leading-[1.5] text-[55px]">L. 200</span>
-        <span className="leading-[1.5] text-[32px]">/mes</span>
-      </p>
-      <div className="[word-break:break-word] font-['DM_Sans:Regular',sans-serif] font-normal leading-[0] min-w-full relative shrink-0 text-[14px] text-[rgba(0,0,0,0.71)] w-[min-content]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        <ul className="list-disc mb-0">
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Funciones básicas gratuitas</span>
-          </li>
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Perfil destacado</span>
-          </li>
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Mayor participación</span>
-          </li>
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Recursos de formación y tutoriales</span>
-          </li>
-          <li className="ms-[21px]">
-            <span className="leading-[1.5]">Herramientas para propuestas</span>
-          </li>
-        </ul>
-        <p className="leading-[1.5]">​</p>
-      </div>
-      <Button5 />
-    </div>
-  );
-}
-
-function Button6() {
-  return (
-    <div className="bg-black content-stretch flex items-center justify-center px-[28px] py-[14px] relative rounded-[12px] shrink-0 w-full" data-name="button">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#f8fafc] text-[15px] whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Seleccionar
-      </p>
-    </div>
-  );
-}
-
-function CategoryCard2() {
-  return (
-    <div className="bg-[rgba(203,233,244,0.81)] col-3 content-stretch flex flex-col gap-[22px] items-start justify-self-stretch p-[24px] relative rounded-[16px] row-1 self-stretch shrink-0" data-name="Category-Card-1">
-      <div aria-hidden className="absolute border border-[#e2e8f0] border-solid inset-0 pointer-events-none rounded-[16px]" />
-      <p className="[word-break:break-word] font-['Outfit:Bold',sans-serif] font-bold leading-[normal] min-w-full relative shrink-0 text-[#0a142f] text-[23px] w-[min-content]">Gratuito</p>
-      <p className="[word-break:break-word] font-['Doppio_One:Regular',sans-serif] leading-[0] not-italic relative shrink-0 text-[0px] text-black whitespace-nowrap">
-        <span className="leading-[1.5] text-[55px]">L. 0</span>
-        <span className="leading-[1.5] text-[36px]">/mes</span>
-      </p>
-      <div className="[word-break:break-word] font-['DM_Sans:Regular',sans-serif] font-normal leading-[0] min-w-full relative shrink-0 text-[14px] text-[rgba(0,0,0,0.71)] w-[min-content]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        <ul className="list-disc mb-0">
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Perfil empresarial</span>
-          </li>
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Publicar proyectos</span>
-          </li>
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Revisión de portafolios</span>
-          </li>
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Contratar</span>
-          </li>
-          <li className="ms-[21px]">
-            <span className="leading-[1.5]">Comparación de propuestas</span>
-          </li>
-        </ul>
-        <p className="leading-[1.5]">​</p>
-      </div>
-      <Button6 />
-    </div>
-  );
-}
-
-function Button7() {
-  return (
-    <div className="bg-black content-stretch flex items-center justify-center px-[28px] py-[14px] relative rounded-[12px] shrink-0 w-full" data-name="button">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#f8fafc] text-[15px] w-[90px]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Seleccionar
-      </p>
-    </div>
-  );
-}
-
-function CategoryCard3() {
-  return (
-    <div className="bg-[rgba(60,185,229,0.6)] col-4 content-stretch flex flex-col gap-[22px] items-start justify-self-stretch p-[24px] relative rounded-[16px] row-1 self-stretch shrink-0" data-name="Category-Card-3">
-      <div aria-hidden className="absolute border border-[#e2e8f0] border-solid inset-0 pointer-events-none rounded-[16px]" />
-      <p className="[word-break:break-word] font-['Outfit:Bold',sans-serif] font-bold leading-[normal] min-w-full relative shrink-0 text-[#0a142f] text-[23px] w-[min-content]">Colmena PRO</p>
-      <p className="[word-break:break-word] font-['Doppio_One:Regular',sans-serif] leading-[0] not-italic relative shrink-0 text-[0px] text-black whitespace-nowrap">
-        <span className="leading-[1.5] text-[55px]">L. 500</span>
-        <span className="leading-[1.5] text-[36px]">/mes</span>
-      </p>
-      <div className="[word-break:break-word] font-['DM_Sans:Regular',sans-serif] font-normal leading-[0] min-w-full relative shrink-0 text-[14px] text-[rgba(0,0,0,0.71)] w-[min-content]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        <ul className="list-disc mb-0">
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Funciones básicas gratuitas</span>
-          </li>
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Proyectos ilimiatados</span>
-          </li>
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Mayor visibilidad</span>
-          </li>
-          <li className="mb-0 ms-[21px]">
-            <span className="leading-[1.5]">Publicidad dentro de Colmena</span>
-          </li>
-          <li className="ms-[21px]">
-            <span className="leading-[1.5]">Filtros avanzados</span>
-          </li>
-        </ul>
-        <p className="leading-[1.5]">​</p>
-      </div>
-      <Button7 />
-    </div>
-  );
-}
-
-function CategoriesGrid() {
-  return (
-    <div className="gap-x-[24px] gap-y-[24px] grid grid-cols-[repeat(4,minmax(0,1fr))] grid-rows-[repeat(2,minmax(0,1fr))] h-[831px] relative shrink-0 w-full" data-name="Categories-Grid">
-      <CategoryCard />
-      <CategoryCard1 />
-      <CategoryCard2 />
-      <CategoryCard3 />
-    </div>
-  );
-}
-
-function CategoryLabel() {
-  return (
-    <div className="absolute bg-[#ffb53e] content-stretch flex items-center justify-center left-[122px] overflow-clip px-[14px] py-[6px] rounded-[100px] top-[254.37px] w-[628px]" data-name="category-label">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#0a142f] text-[16px] uppercase whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Para ESTUDIANTES
-      </p>
-    </div>
-  );
-}
-
-function CategoryLabel1() {
-  return (
-    <div className="absolute bg-[#3cb9e5] content-stretch flex items-center justify-center left-[890px] overflow-clip px-[14px] py-[6px] rounded-[100px] top-[254.37px] w-[628px]" data-name="category-label">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#131313] text-[16px] uppercase whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Para Empresas
-      </p>
+    <div className={`flex w-full items-center justify-center overflow-hidden rounded-[100px] px-3.5 py-2 sm:flex-1 ${className}`} data-name="category-label">
+      <p className="font-bold leading-normal text-[#0a142f] text-[14px] uppercase whitespace-nowrap sm:text-[16px]">{children}</p>
     </div>
   );
 }
 
 function CreativeCategories() {
   return (
-    <div className="bg-white content-stretch flex flex-col gap-[186px] h-[839px] items-start pb-[104px] pt-[20px] px-[80px] relative shrink-0 w-full" data-name="Creative-Categories">
-      <div className="absolute left-[-32px] size-[291px] top-[-216.63px]">
-        <svg className="absolute block inset-0 size-full" fill="none" height="291" preserveAspectRatio="none" viewBox="0 0 291 291" width="291">
-          <circle cx="145.5" cy="145.5" fill="#FFDFAD" id="Ellipse 5" r="145.5" />
+    <div id="planes" className="relative w-full shrink-0 overflow-hidden bg-white px-4 py-16 sm:px-6 lg:px-20 lg:py-24" data-name="Creative-Categories">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <svg className="absolute left-[3%] top-[4%] hidden size-[130px] sm:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#FFDFAD" r="145.5" />
+        </svg>
+        <svg className="absolute right-[4%] bottom-[6%] hidden size-[110px] lg:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#CBE9F4" fillOpacity="0.81" r="145.5" />
+        </svg>
+        <svg className="absolute right-[10%] top-[4%] hidden size-[54px] lg:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#ffb53e" fillOpacity="0.5" r="145.5" />
+        </svg>
+        <svg className="absolute left-[12%] bottom-[6%] hidden size-[64px] xl:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#3cb9e5" fillOpacity="0.35" r="145.5" />
+        </svg>
+        <svg className="absolute left-[30%] top-[3%] hidden size-[38px] xl:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#3cb9e5" fillOpacity="0.4" r="145.5" />
+        </svg>
+        <svg className="absolute right-[26%] bottom-[3%] hidden size-[42px] xl:block" fill="none" viewBox="0 0 291 291">
+          <circle cx="145.5" cy="145.5" fill="#FFDFAD" fillOpacity="0.9" r="145.5" />
         </svg>
       </div>
-      <div className="absolute h-[464px] left-[66px] top-[-627.63px] w-[728px]" data-name="image 17">
-        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImage17} />
+
+      <div className="relative mx-auto flex w-full max-w-[1400px] flex-col items-center gap-10 lg:gap-14">
+        <HeadingGroup
+          eyebrow="Funcionalidades pro"
+          eyebrowClassName="bg-[#ffb53e]"
+          title="Planes Colmena"
+          subtitle="Selecciona el plan que más se adhiera a tus necesidades."
+        />
+
+        <div className="flex w-full flex-col items-center gap-8">
+          <div className="flex w-full flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-center sm:gap-4">
+            <CategoryGroupLabel className="bg-[#ffb53e]">Para Creativos</CategoryGroupLabel>
+            <CategoryGroupLabel className="bg-[#3cb9e5]">Para Clientes</CategoryGroupLabel>
+          </div>
+
+          <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <CategoryCard
+              bgClassName="bg-[#ffd081]"
+              planName="Gratuito"
+              price="L. 0"
+              period="/mes"
+              features={["Perfil profesional", "Portafolio", "Explorar proyectos", "Enviar propuestas", "Pagos protegidos"]}
+            />
+            <CategoryCard
+              bgClassName="bg-[rgba(251,170,35,0.87)]"
+              planName="Colmena PRO"
+              price="L. 200"
+              period="/mes"
+              features={["Funciones básicas gratuitas", "Perfil destacado", "Mayor participación", "Recursos de formación y tutoriales", "Herramientas para propuestas"]}
+            />
+            <CategoryCard
+              bgClassName="bg-[rgba(203,233,244,0.81)]"
+              planName="Gratuito"
+              price="L. 0"
+              period="/mes"
+              features={["Perfil de cliente", "Publicar proyectos", "Revisión de portafolios", "Contratar", "Comparación de propuestas"]}
+            />
+            <CategoryCard
+              bgClassName="bg-[rgba(60,185,229,0.6)]"
+              planName="Colmena PRO"
+              price="L. 500"
+              period="/mes"
+              features={["Funciones básicas gratuitas", "Proyectos ilimitados", "Mayor visibilidad", "Publicidad dentro de Colmena", "Filtros avanzados"]}
+            />
+          </div>
+        </div>
       </div>
-      <HeadingGroup1 />
-      <CategoriesGrid />
-      <CategoryLabel />
-      <CategoryLabel1 />
     </div>
   );
 }
 
-function ContentStack() {
-  return (
-    <div className="[word-break:break-word] content-stretch flex flex-col gap-[16px] items-center leading-[normal] relative shrink-0 text-black text-center w-full" data-name="Content-Stack">
-      <p className="font-['Outfit:ExtraBold',sans-serif] font-extrabold min-w-full relative shrink-0 text-[40px] w-[min-content]">¿Listo para dar el siguiente paso?</p>
-      <p className="font-['DM_Sans:Regular',sans-serif] font-normal relative shrink-0 text-[16px] w-[600px]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Únete hoy a la comunidad que está transformando el panorama empresarial y profesional de Honduras. Registro 100% gratuito.
-      </p>
-    </div>
-  );
-}
-
-function Button8() {
-  return (
-    <div className="bg-[#ffb53e] content-stretch flex items-center justify-center px-[28px] py-[14px] relative rounded-[12px] shrink-0" data-name="button">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#0a142f] text-[15px] whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Contratar Talento
-      </p>
-    </div>
-  );
-}
-
-function Button9() {
-  return (
-    <div className="bg-black content-stretch flex items-center justify-center px-[28px] py-[14px] relative rounded-[12px] shrink-0" data-name="button">
-      <div aria-hidden className="absolute border-2 border-[#0a142f] border-solid inset-0 pointer-events-none rounded-[12px]" />
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[15px] text-white whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Registrarme como Creativo
-      </p>
-    </div>
-  );
-}
-
-function CtaRow() {
-  return (
-    <div className="content-stretch flex gap-[16px] items-start relative shrink-0" data-name="CTA-Row">
-      <Button8 />
-      <Button9 />
-    </div>
-  );
-}
+/* ------------------------------------------------------------------ */
+/* Final CTA                                                           */
+/* ------------------------------------------------------------------ */
 
 function FinalCta() {
   return (
-    <div className="content-stretch flex flex-col gap-[32px] h-[380px] items-center px-[80px] py-[96px] relative shrink-0 w-full" data-name="Final-CTA">
+    <div className="relative flex w-full shrink-0 flex-col items-center gap-8 overflow-hidden px-4 py-16 text-center sm:px-6 lg:px-20 lg:py-24" data-name="Final-CTA">
       <div aria-hidden className="absolute inset-0 pointer-events-none">
         <img alt="" className="absolute max-w-none object-cover size-full" src={imgFinalCta} />
-        <div className="absolute bg-[rgba(203,233,244,0.81)] inset-0" />
+        <div className="absolute inset-0 bg-[rgba(203,233,244,0.81)]" />
       </div>
-      <ContentStack />
-      <CtaRow />
+
+      <div className="relative flex w-full flex-col items-center gap-4 text-black" data-name="Content-Stack">
+        <p className="font-extrabold leading-normal text-[26px] sm:text-[32px] lg:text-[40px]">¿Listo para dar el siguiente paso?</p>
+        <p className="w-full max-w-[600px] font-normal leading-normal text-[15px] sm:text-[16px]">
+          Únete hoy a la comunidad que está transformando el panorama empresarial y profesional de Honduras. Registro 100% gratuito.
+        </p>
+      </div>
+
+      <div className="relative flex w-full flex-col items-stretch gap-4 sm:w-auto sm:flex-row" data-name="CTA-Row">
+        <Link to="/registro-clientes" className="flex items-center justify-center rounded-[12px] bg-[#ffb53e] px-7 py-3.5" data-name="button">
+          <p className="font-bold leading-normal text-[#0a142f] text-[15px] whitespace-nowrap">Contratar Talento</p>
+        </Link>
+        <Link to="/registro-creativos" className="flex items-center justify-center rounded-[12px] border-2 border-[#0a142f] bg-black px-7 py-3.5" data-name="button">
+          <p className="font-bold leading-normal text-white text-[15px] whitespace-nowrap">Registrarme como Creativo</p>
+        </Link>
+      </div>
     </div>
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Footer                                                               */
+/* ------------------------------------------------------------------ */
+
 function LogoMark() {
   return (
-    <div className="bg-[#ffb641] relative rounded-[8px] shrink-0 size-[32px]" data-name="Logo-Mark">
-      <div className="absolute flex h-[25.011px] items-center justify-center left-[7px] top-[3px] w-[18.831px]">
+    <div className="relative size-8 shrink-0 rounded-[8px] bg-[#ffb641]" data-name="Logo-Mark">
+      <div className="absolute left-[7px] top-[3px] flex h-[25px] w-[19px] items-center justify-center">
         <div className="flex-none rotate-[-0.08deg]">
-          <div className="h-[24.985px] relative w-[18.796px]" data-name="colmena-logo-amarillo 1">
+          <div className="relative h-[25px] w-[19px]" data-name="colmena-logo-amarillo 1">
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <img alt="" className="absolute h-[447.73%] left-[-207.32%] max-w-none top-[-184.87%] w-[864.02%]" src={imgColmenaLogoAmarillo1} />
             </div>
@@ -996,164 +622,76 @@ function LogoMark() {
   );
 }
 
-function Brand() {
+function FooterLinkGroup({ title, links }: { title: string; links: string[] }) {
   return (
-    <div className="content-stretch flex gap-[12px] items-center relative shrink-0" data-name="Brand">
-      <LogoMark />
-      <p className="[word-break:break-word] font-['Outfit:ExtraBold',sans-serif] font-extrabold leading-[normal] relative shrink-0 text-[#f8fafc] text-[20px] whitespace-nowrap">Colmena</p>
-    </div>
-  );
-}
-
-function BrandBlock() {
-  return (
-    <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-[360px]" data-name="Brand-Block">
-      <Brand />
-      <p className="[word-break:break-word] font-['DM_Sans:Regular',sans-serif] font-normal leading-[1.6] min-w-full opacity-70 relative shrink-0 text-[14px] text-white w-[min-content]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        La plataforma líder en Honduras que empodera a los estudiantes creativos mientras soluciona las necesidades estratégicas de la pequeña empresa nacional.
-      </p>
-    </div>
-  );
-}
-
-function Frame20() {
-  return (
-    <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0" data-name="Frame">
-      <p className="font-['Outfit:Bold',sans-serif] font-bold relative shrink-0 text-[#f59e0b] uppercase">Plataforma</p>
-      <p className="font-['DM_Sans:Regular',sans-serif] font-normal opacity-80 relative shrink-0 text-[#f8fafc]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Cómo Funciona
-      </p>
-      <p className="font-['DM_Sans:Regular',sans-serif] font-normal opacity-80 relative shrink-0 text-[#f8fafc]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Para Mipymes
-      </p>
-      <p className="font-['DM_Sans:Regular',sans-serif] font-normal opacity-80 relative shrink-0 text-[#f8fafc]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Para Estudiantes
-      </p>
-    </div>
-  );
-}
-
-function Frame21() {
-  return (
-    <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0" data-name="Frame">
-      <p className="font-['Outfit:Bold',sans-serif] font-bold relative shrink-0 text-[#f59e0b] uppercase">Soporte</p>
-      <p className="font-['DM_Sans:Regular',sans-serif] font-normal opacity-80 relative shrink-0 text-[#f8fafc]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Centro de Ayuda
-      </p>
-      <p className="font-['DM_Sans:Regular',sans-serif] font-normal opacity-80 relative shrink-0 text-[#f8fafc]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Políticas de Seguridad
-      </p>
-      <p className="font-['DM_Sans:Regular',sans-serif] font-normal opacity-80 relative shrink-0 text-[#f8fafc]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Términos de Servicio
-      </p>
-      <p className="font-['DM_Sans:Regular',sans-serif] font-normal opacity-80 relative shrink-0 text-[#f8fafc]" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Contacto
-      </p>
-    </div>
-  );
-}
-
-function LinksRow() {
-  return (
-    <div className="[word-break:break-word] content-stretch flex gap-[64px] items-start leading-[normal] relative shrink-0 text-[14px] whitespace-nowrap" data-name="Links-Row">
-      <Frame20 />
-      <Frame21 />
-    </div>
-  );
-}
-
-function TopArea() {
-  return (
-    <div className="content-stretch flex items-start justify-between relative shrink-0 w-full" data-name="Top-Area">
-      <BrandBlock />
-      <LinksRow />
+    <div className="flex flex-col items-start gap-4" data-name="Frame">
+      <p className="font-bold uppercase text-[#f59e0b]">{title}</p>
+      {links.map((l) => (
+        <p key={l} className="font-normal text-[#f8fafc] opacity-80">
+          {l}
+        </p>
+      ))}
     </div>
   );
 }
 
 function Heart() {
   return (
-    <div className="relative shrink-0 size-[16px]" data-name="heart">
-      <svg className="absolute block inset-0 size-full" fill="none" height="16" preserveAspectRatio="none" viewBox="0 0 16 16" width="16">
-        <g id="heart">
-          <path d={svgPaths.p3692f680} id="Vector" stroke="#F59E0B" strokeLinecap="round" strokeWidth="2" />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-function HonduranPride() {
-  return (
-    <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-name="Honduran-Pride">
-      <Heart />
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#f8fafc] text-[13px] whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Hecho en Honduras
-      </p>
-    </div>
-  );
-}
-
-function BottomArea() {
-  return (
-    <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-name="Bottom-Area">
-      <p className="[word-break:break-word] font-['DM_Sans:Regular',sans-serif] font-normal leading-[normal] opacity-60 relative shrink-0 text-[#f8fafc] text-[14px] whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        © 2026 Colmena Todos los derechos reservados.
-      </p>
-      <HonduranPride />
-    </div>
+    <svg className="block size-4 shrink-0" fill="none" viewBox="0 0 16 16">
+      <path d={svgPaths.p3692f680} stroke="#F59E0B" strokeLinecap="round" strokeWidth="2" />
+    </svg>
   );
 }
 
 function Footer() {
   return (
-    <div className="bg-black content-stretch flex flex-col gap-[56px] items-start pb-[40px] pt-[80px] px-[80px] relative shrink-0 w-full" data-name="Footer">
-      <TopArea />
-      <div className="h-0 relative shrink-0 w-full" data-name="Line">
-        <div className="absolute inset-[-1px_0_0_0]">
-          <svg className="block size-full" fill="none" height="1" preserveAspectRatio="none" viewBox="0 0 1507 1" width="1507">
-            <line id="Line" opacity="0.1" stroke="#F8FAFC" x2="1507" y1="0.5" y2="0.5" />
-          </svg>
+    <div className="flex w-full shrink-0 flex-col items-start gap-10 bg-black px-4 py-12 sm:px-6 lg:gap-14 lg:px-20 lg:py-20" data-name="Footer">
+      <div className="flex w-full flex-col items-start gap-10 lg:flex-row lg:items-start lg:justify-between" data-name="Top-Area">
+        <div className="flex w-full max-w-[360px] flex-col items-start gap-4" data-name="Brand-Block">
+          <div className="flex items-center gap-3" data-name="Brand">
+            <LogoMark />
+            <p className="font-extrabold leading-normal text-[#f8fafc] text-[20px] whitespace-nowrap">Colmena</p>
+          </div>
+          <p className="font-normal leading-[1.6] text-[14px] text-white opacity-70">
+            La plataforma líder en Honduras que empodera a los creativos mientras soluciona las necesidades estratégicas de sus clientes.
+          </p>
+        </div>
+
+        <div className="flex w-full flex-wrap gap-x-16 gap-y-8 text-[14px] leading-normal sm:w-auto" data-name="Links-Row">
+          <FooterLinkGroup title="Plataforma" links={["Cómo Funciona", "Para Clientes", "Para Creativos"]} />
+          <FooterLinkGroup title="Soporte" links={["Centro de Ayuda", "Políticas de Seguridad", "Términos de Servicio", "Contacto"]} />
         </div>
       </div>
-      <BottomArea />
+
+      <div className="h-px w-full bg-[#f8fafc] opacity-10" data-name="Line" />
+
+      <div className="flex w-full flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between" data-name="Bottom-Area">
+        <p className="font-normal leading-normal text-[#f8fafc] text-[14px] opacity-60">© 2026 Colmena. Todos los derechos reservados.</p>
+        <div className="flex items-center gap-2" data-name="Honduran-Pride">
+          <Heart />
+          <p className="font-bold leading-normal text-[#f8fafc] text-[13px] whitespace-nowrap">Hecho en Honduras</p>
+        </div>
+      </div>
     </div>
   );
 }
 
-function Button10() {
-  return (
-    <div className="absolute bg-black content-stretch flex items-center justify-center px-[28px] py-[14px] right-[180.05px] rounded-[12px] top-[2677px] w-[486.946px]" data-name="button">
-      <p className="[word-break:break-word] font-['DM_Sans:Bold',sans-serif] font-bold leading-[normal] relative shrink-0 text-[#f8fafc] text-[15px] whitespace-nowrap" style={{ fontVariationSettings: '"opsz" 14' }}>
-        Quiero ofrecer mis servicios
-      </p>
-    </div>
-  );
-}
+/* ------------------------------------------------------------------ */
+/* Page                                                                 */
+/* ------------------------------------------------------------------ */
 
 export default function ColmenaLanding() {
   return (
-    <div className="bg-white content-stretch flex flex-col items-start relative size-full" data-name="colmena-landing">
+    <div className="flex w-full max-w-full flex-col items-start overflow-x-hidden bg-white" data-name="colmena-landing">
       <Header />
       <Hero />
       <StatsBar />
       <HowItWorks />
       <BenefitsMipymes />
       <BenefitsStudents />
-      <div className="absolute h-[753px] right-0 top-[2114px] w-[119px]">
-        <svg className="absolute block inset-0 size-full" fill="none" height="753" preserveAspectRatio="none" viewBox="0 0 119 753" width="119">
-          <path d={svgPaths.p33a19380} fill="#FFDFAD" id="Rectangle 2" />
-        </svg>
-      </div>
       <CreativeCategories />
       <FinalCta />
       <Footer />
-      <Button10 />
-      <div className="absolute right-[-65px] size-[291px] top-[1871px]">
-        <svg className="absolute block inset-0 size-full" fill="none" height="291" preserveAspectRatio="none" viewBox="0 0 291 291" width="291">
-          <circle cx="145.5" cy="145.5" fill="#CBE9F4" fillOpacity="0.81" id="Ellipse 4" r="145.5" />
-        </svg>
-      </div>
     </div>
   );
 }
