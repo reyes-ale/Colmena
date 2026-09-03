@@ -491,7 +491,7 @@ function CategoryCard({
 
 function CategoryGroupLabel({ className, children }: { className: string; children: React.ReactNode }) {
   return (
-    <div className={`flex w-full items-center justify-center overflow-hidden rounded-[100px] px-3.5 py-2 sm:flex-1 ${className}`} data-name="category-label">
+    <div className={`flex w-full max-w-[420px] items-center justify-center overflow-hidden rounded-[100px] px-3.5 py-2 ${className}`} data-name="category-label">
       <p className="font-bold leading-normal text-[#0a142f] text-[14px] uppercase whitespace-nowrap sm:text-[16px]">{children}</p>
     </div>
   );
@@ -529,41 +529,45 @@ function CreativeCategories() {
           subtitle="Selecciona el plan que más se adhiera a tus necesidades."
         />
 
-        <div className="flex w-full flex-col items-center gap-8">
-          <div className="flex w-full flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-center sm:gap-4">
+        <div className="flex w-full flex-col items-stretch gap-10 lg:flex-row lg:gap-6">
+          <div className="flex w-full flex-col items-center gap-6">
             <CategoryGroupLabel className="bg-[#ffb53e]">Para Creativos</CategoryGroupLabel>
-            <CategoryGroupLabel className="bg-[#3cb9e5]">Para Clientes</CategoryGroupLabel>
+            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+              <CategoryCard
+                bgClassName="bg-[#ffd081]"
+                planName="Gratuito"
+                price="L. 0"
+                period="/mes"
+                features={["Perfil profesional", "Portafolio", "Explorar proyectos", "Enviar propuestas", "Pagos protegidos"]}
+              />
+              <CategoryCard
+                bgClassName="bg-[rgba(251,170,35,0.87)]"
+                planName="Colmena PRO"
+                price="L. 200"
+                period="/mes"
+                features={["Funciones básicas gratuitas", "Perfil destacado", "Mayor participación", "Recursos de formación y tutoriales", "Herramientas para propuestas"]}
+              />
+            </div>
           </div>
 
-          <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <CategoryCard
-              bgClassName="bg-[#ffd081]"
-              planName="Gratuito"
-              price="L. 0"
-              period="/mes"
-              features={["Perfil profesional", "Portafolio", "Explorar proyectos", "Enviar propuestas", "Pagos protegidos"]}
-            />
-            <CategoryCard
-              bgClassName="bg-[rgba(251,170,35,0.87)]"
-              planName="Colmena PRO"
-              price="L. 200"
-              period="/mes"
-              features={["Funciones básicas gratuitas", "Perfil destacado", "Mayor participación", "Recursos de formación y tutoriales", "Herramientas para propuestas"]}
-            />
-            <CategoryCard
-              bgClassName="bg-[rgba(203,233,244,0.81)]"
-              planName="Gratuito"
-              price="L. 0"
-              period="/mes"
-              features={["Perfil de cliente", "Publicar proyectos", "Revisión de portafolios", "Contratar", "Comparación de propuestas"]}
-            />
-            <CategoryCard
-              bgClassName="bg-[rgba(60,185,229,0.6)]"
-              planName="Colmena PRO"
-              price="L. 500"
-              period="/mes"
-              features={["Funciones básicas gratuitas", "Proyectos ilimitados", "Mayor visibilidad", "Publicidad dentro de Colmena", "Filtros avanzados"]}
-            />
+          <div className="flex w-full flex-col items-center gap-6">
+            <CategoryGroupLabel className="bg-[#3cb9e5]">Para Clientes</CategoryGroupLabel>
+            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+              <CategoryCard
+                bgClassName="bg-[rgba(203,233,244,0.81)]"
+                planName="Gratuito"
+                price="L. 0"
+                period="/mes"
+                features={["Perfil de cliente", "Publicar proyectos", "Revisión de portafolios", "Contratar", "Comparación de propuestas"]}
+              />
+              <CategoryCard
+                bgClassName="bg-[rgba(60,185,229,0.6)]"
+                planName="Colmena PRO"
+                price="L. 500"
+                period="/mes"
+                features={["Funciones básicas gratuitas", "Proyectos ilimitados", "Mayor visibilidad", "Publicidad dentro de Colmena", "Filtros avanzados"]}
+              />
+            </div>
           </div>
         </div>
       </div>

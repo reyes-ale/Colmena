@@ -13,11 +13,10 @@ export interface SignUpInput {
 
 /**
  * La tabla `usuarios` de este proyecto ya existía antes de esta etapa (con
- * columna "contraseña" en texto plano) y no se tocó, así que en vez de
- * Supabase Auth usamos dos funciones RPC (ver supabase/schema.sql) que
- * leen/escriben esa tabla sin exponerla directamente por RLS: la
- * contraseña se compara DENTRO de la base y nunca sale hacia el cliente.
- * La "sesión" es simplemente el perfil devuelto, guardado en localStorage.
+ * columna "contraseña" hasheada con bcrypt) y no se tocó, así que en vez de
+ * Supabase Auth usamos funciones RPC (ver supabase/schema.sql) que
+ * leen/escriben esa tabla sin exponerla directamente por RLS. La "sesión"
+ * es simplemente el perfil devuelto, guardado en localStorage.
  */
 export async function signUpUsuario({ nombre, correo, contrasena, rol, tipoCliente }: SignUpInput) {
   const { data, error } = await supabase.rpc("registrar_usuario", {
@@ -61,12 +60,26 @@ export function loadStoredProfile(): UsuarioProfile | null {
   }
 }
 
-function persistProfile(profile: UsuarioProfile) {
+export function persistProfile(profile: UsuarioProfile) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+}
+
+/** Actualiza nombre / foto de perfil (Configuración). */
+export async function actualizarUsuario(id: number, nombre: string, fotoUrl: string | null) {
+  const { data, error } = await supabase.rpc("actualizar_usuario", {
+    p_id: id,
+    p_nombre: nombre,
+    p_foto_url: fotoUrl,
+  });
+  if (error) return { profile: null, error };
+
+  const profile = (Array.isArray(data) ? data[0] : data) as UsuarioProfile | undefined;
+  if (profile) persistProfile(profile);
+  return { profile: profile ?? null, error: null };
 }
 
 /** A qué dashboard debe ir cada combinación de rol / tipo_cliente. */
 export function dashboardPathForProfile(profile: UsuarioProfile): string {
   if (profile.rol === "creativo") return "/dashboard/creativo";
-  return profile.tipo_cliente === "empresa" ? "/dashboard/cliente-empresa" : "/dashboard/cliente-persona";
+  return "/dashboard/cliente";
 }
