@@ -120,6 +120,43 @@ export interface EstadisticasCreativo {
   total_resenas: number;
 }
 
+/** Conversación entre un cliente y un creativo (ver
+ * supabase/schema_18_mensajes.sql) — "otro_*" es la contraparte del
+ * usuario que la está consultando, sea cliente o creativo. */
+export interface Conversacion {
+  id: number;
+  otro_id: number;
+  otro_nombre: string;
+  otro_foto_url: string | null;
+  ultimo_mensaje: string | null;
+  ultimo_mensaje_en: string | null;
+  no_leidos: number;
+}
+
+export interface Mensaje {
+  id: number;
+  conversacion_id: number;
+  autor_id: number;
+  texto: string;
+  created_at: string;
+  leido: boolean;
+}
+
+/** Ver supabase/schema_19_notificaciones.sql — se crean solas desde
+ * seleccionar_creativo, enviar_propuesta y solicitar_cambios. */
+export type TipoNotificacion = "seleccionado" | "nueva_propuesta" | "cambios_solicitados";
+
+export interface Notificacion {
+  id: number;
+  usuario_id: number;
+  tipo: TipoNotificacion;
+  titulo: string;
+  mensaje: string;
+  proyecto_id: number | null;
+  leida: boolean;
+  created_at: string;
+}
+
 /** Fila de la tabla public.trabajos_creativo — un proyecto del portafolio
  * (ya existía en el proyecto, ver supabase/schema_15_portafolio.sql).
  * Visible para todos (RLS de lectura pública) — los clientes también lo

@@ -23,10 +23,13 @@ import { obtenerEstadisticasCreativo } from "../../lib/resenas";
 import { enviarPropuesta } from "../../lib/propuestas";
 import { crearEntrega } from "../../lib/entregas";
 import { crearTrabajoPortafolio, listarPortafolioDeCreativo } from "../../lib/portafolio";
+import { listarConversaciones } from "../../lib/mensajes";
+import type { Conversacion } from "../../lib/types";
 import { subirArchivoCloudinary, subirImagenCloudinary } from "../../lib/cloudinary";
 import { Avatar, BeeLogo, FlyingBees, DashboardLayout, Panel, EmptyState, ComingSoon, ConfirmacionBanner, type NavItem } from "../shared/DashboardUI";
 import { ESTADO_LABEL, ESTADO_COLOR, formatFecha, formatMoneda } from "../shared/proyectoFormat";
 import { PortafolioGrid } from "../shared/PortafolioGrid";
+import Mensajes from "../shared/Mensajes";
 import Configuracion from "../shared/Configuracion";
 
 const NAV_ITEMS: NavItem[] = [
@@ -1166,10 +1169,31 @@ function useEstadisticasCreativo(creativoId: number) {
   return { stats, loading };
 }
 
+function useConversaciones(usuarioId: number) {
+  const [conversaciones, setConversaciones] = useState<Conversacion[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    listarConversaciones(usuarioId).then((data) => {
+      if (active) {
+        setConversaciones(data);
+        setLoading(false);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [usuarioId]);
+
+  return { conversaciones, loading };
+}
+
 function Inicio({ profile }: { profile: UsuarioProfile }) {
   const { proyectos: disponibles, loading: loadingDisponibles } = useProyectosDisponibles(profile.id);
   const { proyectos: activos, loading: loadingActivos } = useProyectosAsignados(profile.id);
   const { stats, loading: loadingStats } = useEstadisticasCreativo(profile.id);
+  const { conversaciones, loading: loadingConversaciones } = useConversaciones(profile.id);
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="flex items-center gap-4">
@@ -1249,7 +1273,28 @@ function Inicio({ profile }: { profile: UsuarioProfile }) {
                 Ver más
               </Link>
             </div>
-            <EmptyState text="No tienes mensajes todavía." />
+            {loadingConversaciones ? (
+              <p className="py-4 text-center text-[13px] text-[#0a142f]/60">Cargando…</p>
+            ) : conversaciones.length === 0 ? (
+              <EmptyState text="No tienes mensajes todavía." />
+            ) : (
+              <div className="flex flex-col gap-3">
+                {conversaciones.slice(0, 3).map((c) => (
+                  <Link key={c.id} to={`/dashboard/creativo/mensajes/${c.id}`} className="flex items-center gap-3 rounded-[10px] bg-white/60 p-2.5 hover:bg-white">
+                    <Avatar nombre={c.otro_nombre} fotoUrl={c.otro_foto_url} size={36} />
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <p className="truncate font-bold text-[#0a142f] text-[13px]">{c.otro_nombre}</p>
+                      <p className="truncate text-[12px] text-[#0a142f]/70">{c.ultimo_mensaje ?? "Sin mensajes todavía"}</p>
+                    </div>
+                    {c.no_leidos > 0 && (
+                      <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-[#ffb53e] text-[11px] font-bold text-[#0a142f]">
+                        {c.no_leidos}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1270,7 +1315,8 @@ export default function CreativoDashboard({ profile }: { profile: UsuarioProfile
         <Route path="creativo/buscar-proyecto/:proyectoId/propuesta" element={<EnviarPropuesta profile={profile} />} />
         <Route path="creativo/proyectos" element={<ProyectosActivosCreativo profile={profile} />} />
         <Route path="creativo/proyectos/:proyectoId/entregar" element={<EntregarProyecto profile={profile} />} />
-        <Route path="creativo/mensajes" element={<ComingSoon title="Mensajes" icon={MessageSquare} />} />
+        <Route path="creativo/mensajes" element={<Mensajes profile={profile} basePath="/dashboard/creativo/mensajes" />} />
+        <Route path="creativo/mensajes/:conversacionId" element={<Mensajes profile={profile} basePath="/dashboard/creativo/mensajes" />} />
         <Route path="creativo/portafolio" element={<PortafolioCreativo profile={profile} />} />
         <Route path="creativo/portafolio/agregar" element={<AgregarProyectoPortafolio profile={profile} />} />
         <Route path="creativo/estadisticas" element={<ComingSoon title="Estadísticas" icon={BarChart3} />} />

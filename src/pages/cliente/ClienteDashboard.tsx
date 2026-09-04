@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Routes, Route, Navigate, Link, useNavigate, useParams } from "react-router";
+import imgPublicarProyectoBanner from "../../assets/publicar-proyecto-banner.png";
 import { LayoutDashboard, PlusCircle, Briefcase, MessageSquare, Users, BarChart3, Wallet, Settings, Sparkles, ChevronLeft, FileText } from "lucide-react";
 import type { EntregaConDetalle, Proyecto, PropuestaConDetalle, Resena, UsuarioProfile } from "../../lib/types";
 import {
@@ -17,11 +18,13 @@ import type { ProyectoPendienteResena } from "../../lib/resenas";
 import { listarPortafolioDeCreativo, obtenerPerfilPublico } from "../../lib/portafolio";
 import type { PerfilPublico } from "../../lib/portafolio";
 import type { TrabajoPortafolio } from "../../lib/types";
+import { obtenerOCrearConversacion } from "../../lib/mensajes";
 import { Avatar, BeeLogo, FlyingBees, DashboardLayout, Panel, EmptyState, ComingSoon, ConfirmacionBanner, type NavItem } from "../shared/DashboardUI";
 import { ESTADO_LABEL, ESTADO_COLOR, formatFecha, formatMoneda } from "../shared/proyectoFormat";
 import { PortafolioGrid } from "../shared/PortafolioGrid";
 import AcuerdoDigitalModal from "../shared/AcuerdoDigitalModal";
 import ValoracionModal from "../shared/ValoracionModal";
+import Mensajes from "../shared/Mensajes";
 import Configuracion from "../shared/Configuracion";
 
 const NAV_ITEMS: NavItem[] = [
@@ -171,14 +174,17 @@ function Inicio({ profile }: { profile: UsuarioProfile }) {
         <FlyingBees />
       </div>
 
-      <div className="flex w-full flex-col items-start gap-4 rounded-[20px] bg-[#ffd081] p-7 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-2">
+      <div className="flex w-full flex-col overflow-hidden rounded-[20px] bg-[#ffd081] sm:min-h-[190px] sm:flex-row">
+        <div className="flex flex-1 flex-col items-start justify-center gap-4 p-7">
           <p className="font-extrabold text-[#0a142f] text-[22px]">Publica un proyecto</p>
           <p className="max-w-[420px] text-[14px] text-[#0a142f]/80">Cuéntanos qué necesitas y recibe propuestas de creativos listos para hacerlo realidad.</p>
+          <Link to="/dashboard/cliente/publicar-proyecto" className="flex shrink-0 items-center justify-center rounded-[12px] bg-black px-6 py-3">
+            <p className="font-bold leading-normal text-white text-[14px] whitespace-nowrap">Publicar un proyecto</p>
+          </Link>
         </div>
-        <Link to="/dashboard/cliente/publicar-proyecto" className="flex shrink-0 items-center justify-center rounded-[12px] bg-black px-6 py-3">
-          <p className="font-bold leading-normal text-white text-[14px] whitespace-nowrap">Publicar un proyecto</p>
-        </Link>
+        <div className="hidden flex-1 sm:block">
+          <img src={imgPublicarProyectoBanner} alt="" className="size-full object-cover" />
+        </div>
       </div>
 
       <div className="grid w-full grid-cols-1 gap-6 lg:grid-cols-3">
@@ -452,16 +458,27 @@ function ProyectosActivos({ profile }: { profile: UsuarioProfile }) {
 
 function PropuestaCard({
   propuesta,
+  clienteId,
   seleccionado,
   onSeleccionar,
   seleccionando,
 }: {
   propuesta: PropuestaConDetalle;
+  clienteId: number;
   seleccionado: boolean;
   onSeleccionar: () => void;
   seleccionando: boolean;
 }) {
   const navigate = useNavigate();
+  const [contactando, setContactando] = useState(false);
+
+  const handleContactar = async () => {
+    setContactando(true);
+    const { conversacion, error } = await obtenerOCrearConversacion(clienteId, propuesta.creativo_id);
+    setContactando(false);
+    if (conversacion) navigate(`/dashboard/cliente/mensajes/${conversacion.id}`);
+    else console.error("No se pudo abrir la conversación:", error?.message);
+  };
 
   return (
     <div className="flex flex-col items-center gap-3 rounded-[16px] bg-[#CBE9F4] p-6 text-center">
@@ -510,10 +527,11 @@ function PropuestaCard({
           </button>
           <button
             type="button"
-            onClick={() => navigate("/dashboard/cliente/mensajes")}
-            className="flex flex-1 items-center justify-center rounded-[10px] bg-black px-4 py-2.5"
+            onClick={handleContactar}
+            disabled={contactando}
+            className="flex flex-1 items-center justify-center rounded-[10px] bg-black px-4 py-2.5 disabled:opacity-60"
           >
-            <p className="font-bold text-white text-[13px] whitespace-nowrap">Contactar</p>
+            <p className="font-bold text-white text-[13px] whitespace-nowrap">{contactando ? "Abriendo…" : "Contactar"}</p>
           </button>
         </div>
       )}
@@ -719,6 +737,7 @@ function PropuestasDelProyecto({ profile }: { profile: UsuarioProfile }) {
             <PropuestaCard
               key={p.id}
               propuesta={p}
+              clienteId={profile.id}
               seleccionado={p.estado === "aceptada"}
               seleccionando={seleccionandoId === p.creativo_id}
               onSeleccionar={() => handleSeleccionar(p.creativo_id)}
@@ -986,7 +1005,8 @@ export default function ClienteDashboard({ profile }: { profile: UsuarioProfile 
         <Route path="cliente/publicar-proyecto" element={<PublicarProyecto profile={profile} />} />
         <Route path="cliente/proyectos" element={<ProyectosActivos profile={profile} />} />
         <Route path="cliente/proyectos/:proyectoId/propuestas" element={<PropuestasDelProyecto profile={profile} />} />
-        <Route path="cliente/mensajes" element={<ComingSoon title="Mensajes" icon={MessageSquare} />} />
+        <Route path="cliente/mensajes" element={<Mensajes profile={profile} basePath="/dashboard/cliente/mensajes" />} />
+        <Route path="cliente/mensajes/:conversacionId" element={<Mensajes profile={profile} basePath="/dashboard/cliente/mensajes" />} />
         <Route path="cliente/propuestas" element={<PropuestasRecibidas profile={profile} />} />
         <Route path="cliente/portafolio/:creativoId" element={<PortafolioDeCreativo />} />
         <Route path="cliente/estadisticas" element={<ComingSoon title="Estadísticas" icon={BarChart3} />} />

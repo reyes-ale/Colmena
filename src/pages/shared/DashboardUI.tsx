@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { Menu, Bell, ChevronDown, Settings, LogOut, Check, type LucideIcon } from "lucide-react";
 import { useAuth } from "../../lib/AuthContext";
-import type { UsuarioProfile } from "../../lib/types";
+import type { Notificacion, UsuarioProfile } from "../../lib/types";
+import { listarNotificaciones, marcarNotificacionesLeidas } from "../../lib/notificaciones";
 import imgColmenaLogoNormal1 from "../../imports/ColmenaLanding/41ac45f8c7521b60c25adadf954c316d83f63029.png";
 
 /* ------------------------------------------------------------------ */
@@ -181,6 +182,129 @@ function UserMenu({ profile, configPath }: { profile: UsuarioProfile; configPath
   );
 }
 
+function formatRelativo(iso: string) {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "ahora";
+  if (mins < 60) return `hace ${mins} min`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `hace ${hrs} h`;
+  const dias = Math.floor(hrs / 24);
+  return `hace ${dias} d`;
+}
+
+/** A dónde lleva cada tipo de notificación al hacer click — el tipo ya
+ * dice quién la recibe (seleccionado/cambios_solicitados siempre le
+ * llegan a un Creativo; nueva_propuesta siempre a un Cliente), así que no
+ * hace falta más contexto para armar la ruta. */
+function rutaParaNotificacion(n: Notificacion): string | null {
+  if (!n.proyecto_id) return null;
+  switch (n.tipo) {
+    case "seleccionado":
+    case "cambios_solicitados":
+      return `/dashboard/creativo/proyectos/${n.proyecto_id}/entregar`;
+    case "nueva_propuesta":
+      return `/dashboard/cliente/proyectos/${n.proyecto_id}/propuestas`;
+    default:
+      return null;
+  }
+}
+
+/** Campanita de notificaciones — mismo patrón de dropdown que UserMenu. */
+function NotificationBell({ profile }: { profile: UsuarioProfile }) {
+  const [open, setOpen] = useState(false);
+  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const ref = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let active = true;
+    listarNotificaciones(profile.id).then((data) => {
+      if (active) {
+        setNotificaciones(data);
+        setLoading(false);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [profile.id]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  const noLeidas = notificaciones.filter((n) => !n.leida).length;
+
+  const handleToggle = () => {
+    setOpen((v) => !v);
+    if (!open && noLeidas > 0) {
+      marcarNotificacionesLeidas(profile.id).then(() => {
+        setNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));
+      });
+    }
+  };
+
+  const handleClickNotificacion = (n: Notificacion) => {
+    setOpen(false);
+    const ruta = rutaParaNotificacion(n);
+    if (ruta) navigate(ruta);
+  };
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        aria-label="Notificaciones"
+        onClick={handleToggle}
+        className="relative flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-[#f3f4f6]"
+      >
+        <Bell size={18} className="text-[#475569]" />
+        {noLeidas > 0 && (
+          <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-[#d4183d] text-[10px] font-bold text-white">
+            {noLeidas > 9 ? "9+" : noLeidas}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-[calc(100%+8px)] z-50 max-h-[420px] w-[320px] overflow-y-auto rounded-[12px] border border-[#e2e8f0] bg-white shadow-lg"
+        >
+          <p className="border-b border-[#e2e8f0] px-4 py-3 font-bold text-[#0a142f] text-[14px]">Notificaciones</p>
+          {loading ? (
+            <p className="py-8 text-center text-[13px] text-[#94a3b8]">Cargando…</p>
+          ) : notificaciones.length === 0 ? (
+            <p className="py-8 text-center text-[13px] text-[#94a3b8]">No tienes notificaciones.</p>
+          ) : (
+            notificaciones.map((n) => (
+              <button
+                key={n.id}
+                type="button"
+                onClick={() => handleClickNotificacion(n)}
+                className={`flex w-full flex-col gap-0.5 border-b border-[#f1f5f9] px-4 py-3 text-left hover:bg-[#f8fafc] ${
+                  n.leida ? "" : "bg-[#fff8ec]"
+                }`}
+              >
+                <p className="font-bold text-[#0a142f] text-[13px]">{n.titulo}</p>
+                <p className="text-[13px] text-[#64748b]">{n.mensaje}</p>
+                <p className="text-[11px] text-[#94a3b8]">{formatRelativo(n.created_at)}</p>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TopBar({
   profile,
   homePath,
@@ -214,9 +338,7 @@ function TopBar({
       </div>
 
       <div className="flex items-center gap-4">
-        <button type="button" aria-label="Notificaciones" className="flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-[#f3f4f6]">
-          <Bell size={18} className="text-[#475569]" />
-        </button>
+        <NotificationBell profile={profile} />
         <UserMenu profile={profile} configPath={configPath} />
       </div>
     </div>
