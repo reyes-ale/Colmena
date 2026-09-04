@@ -65,7 +65,7 @@ export default function Configuracion({ profile }: { profile: UsuarioProfile }) 
             <Avatar nombre={nombre} fotoUrl={preview ?? profile.foto_url} size={72} />
             <div className="flex flex-col gap-2">
               <p className="max-w-[420px] text-[14px] text-[#475569]">
-                Elige la imagen que quieras usar. Se sube a Cloudinary y se guarda cuando le des a "Guardar cambios".
+                Elige la imagen que quieres usar.
               </p>
               <label className="w-fit cursor-pointer rounded-[8px] border border-[#e2e8f0] px-3 py-1.5 text-[13px] font-medium text-[#0a142f] hover:bg-[#f3f4f6]">
                 Elegir imagen

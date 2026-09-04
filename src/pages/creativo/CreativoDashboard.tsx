@@ -15,14 +15,18 @@ import {
   ChevronRight,
   Plus,
   Upload,
+  FileText,
 } from "lucide-react";
-import type { ProyectoAsignado, ProyectoDisponible, UsuarioProfile } from "../../lib/types";
-import { listarProyectosDisponibles, listarProyectosAsignados } from "../../lib/proyectos";
+import type { EstadisticasCreativo, ProyectoAsignado, ProyectoDisponible, TrabajoPortafolio, UsuarioProfile } from "../../lib/types";
+import { listarProyectosDisponibles, listarProyectosAsignados, confirmarPagoRecibido } from "../../lib/proyectos";
+import { obtenerEstadisticasCreativo } from "../../lib/resenas";
 import { enviarPropuesta } from "../../lib/propuestas";
 import { crearEntrega } from "../../lib/entregas";
-import { subirArchivoCloudinary } from "../../lib/cloudinary";
-import { Avatar, BeeLogo, FlyingBees, DashboardLayout, Panel, EmptyState, ComingSoon, type NavItem } from "../shared/DashboardUI";
+import { crearTrabajoPortafolio, listarPortafolioDeCreativo } from "../../lib/portafolio";
+import { subirArchivoCloudinary, subirImagenCloudinary } from "../../lib/cloudinary";
+import { Avatar, BeeLogo, FlyingBees, DashboardLayout, Panel, EmptyState, ComingSoon, ConfirmacionBanner, type NavItem } from "../shared/DashboardUI";
 import { ESTADO_LABEL, ESTADO_COLOR, formatFecha, formatMoneda } from "../shared/proyectoFormat";
+import { PortafolioGrid } from "../shared/PortafolioGrid";
 import Configuracion from "../shared/Configuracion";
 
 const NAV_ITEMS: NavItem[] = [
@@ -238,13 +242,13 @@ function MiniCalendar() {
 /* Buscar proyecto — proyectos abiertos publicados por clientes         */
 /* ------------------------------------------------------------------ */
 
-function useProyectosDisponibles() {
+function useProyectosDisponibles(creativoId: number) {
   const [proyectos, setProyectos] = useState<ProyectoDisponible[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    listarProyectosDisponibles().then((data) => {
+    listarProyectosDisponibles(creativoId).then((data) => {
       if (active) {
         setProyectos(data);
         setLoading(false);
@@ -253,31 +257,38 @@ function useProyectosDisponibles() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [creativoId]);
 
   return { proyectos, loading };
 }
 
 function ProyectoDisponibleRow({ proyecto }: { proyecto: ProyectoDisponible }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-4">
-      <div className="flex min-w-0 items-center gap-4">
-        <Avatar nombre={proyecto.cliente_nombre} fotoUrl={proyecto.cliente_foto_url} size={56} />
-        <div className="flex min-w-0 flex-col">
-          <p className="truncate font-bold text-[#0a142f] text-[17px]">{proyecto.cliente_nombre}</p>
-          <p className="truncate text-[14px] text-[#475569]">{proyecto.titulo}</p>
-          <p className="truncate text-[13px] text-[#94a3b8]">
+    <div className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-start gap-4">
+        <Avatar nombre={proyecto.cliente_nombre} fotoUrl={proyecto.cliente_foto_url} size={64} />
+        <div className="flex min-w-0 flex-col gap-1">
+          <p className="truncate font-bold text-[#0a142f] text-[19px]">{proyecto.cliente_nombre}</p>
+          <p className="truncate font-medium text-[#0a142f] text-[16px]">{proyecto.titulo}</p>
+          {proyecto.descripcion && <p className="max-w-[560px] text-[15px] leading-snug text-[#64748b] line-clamp-2">{proyecto.descripcion}</p>}
+          <p className="text-[14px] text-[#94a3b8]">
             {formatMoneda(proyecto.presupuesto)} · Entrega {formatFecha(proyecto.fecha_entrega)}
           </p>
         </div>
       </div>
 
-      <Link
-        to={`/dashboard/creativo/buscar-proyecto/${proyecto.id}/propuesta`}
-        className="flex shrink-0 items-center justify-center rounded-[10px] bg-black px-5 py-2.5"
-      >
-        <p className="font-bold leading-normal text-white text-[13px] whitespace-nowrap">Enviar Propuesta</p>
-      </Link>
+      {proyecto.ya_envie_propuesta ? (
+        <span className="flex shrink-0 items-center justify-center rounded-[10px] border border-[#e2e8f0] bg-[#f8fafc] px-6 py-3">
+          <p className="font-bold leading-normal text-[#94a3b8] text-[14px] whitespace-nowrap">Propuesta enviada</p>
+        </span>
+      ) : (
+        <Link
+          to={`/dashboard/creativo/buscar-proyecto/${proyecto.id}/propuesta`}
+          className="flex shrink-0 items-center justify-center rounded-[10px] bg-black px-6 py-3"
+        >
+          <p className="font-bold leading-normal text-white text-[14px] whitespace-nowrap">Enviar Propuesta</p>
+        </Link>
+      )}
     </div>
   );
 }
@@ -298,8 +309,7 @@ function DetalleValor({ label, valor }: { label: string; valor: string }) {
 
 function EnviarPropuesta({ profile }: { profile: UsuarioProfile }) {
   const { proyectoId } = useParams();
-  const navigate = useNavigate();
-  const { proyectos, loading: loadingProyecto } = useProyectosDisponibles();
+  const { proyectos, loading: loadingProyecto } = useProyectosDisponibles(profile.id);
   const proyecto = useMemo(() => proyectos.find((p) => p.id === Number(proyectoId)), [proyectos, proyectoId]);
 
   const [monto, setMonto] = useState("");
@@ -310,6 +320,17 @@ function EnviarPropuesta({ profile }: { profile: UsuarioProfile }) {
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [enviado, setEnviado] = useState(false);
+
+  const handleCvFile = (file: File | null) => {
+    if (!file) return;
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setError("Tu CV tiene que ser un archivo PDF.");
+      return;
+    }
+    setError(null);
+    setCvFile(file);
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -325,18 +346,18 @@ function EnviarPropuesta({ profile }: { profile: UsuarioProfile }) {
       setError("Cuéntanos qué vas a entregar.");
       return;
     }
-    if (!cvFile) {
-      setError("Sube tu CV para enviar la propuesta.");
-      return;
-    }
 
     setLoading(true);
 
-    const { url, error: uploadError } = await subirArchivoCloudinary(cvFile);
-    if (uploadError || !url) {
-      setLoading(false);
-      setError(uploadError ?? "No se pudo subir tu CV.");
-      return;
+    let cvUrl: string | null = null;
+    if (cvFile) {
+      const { url, error: uploadError } = await subirArchivoCloudinary(cvFile);
+      if (uploadError || !url) {
+        setLoading(false);
+        setError(uploadError ?? "No se pudo subir tu CV.");
+        return;
+      }
+      cvUrl = url;
     }
 
     const { propuesta, error: sendError } = await enviarPropuesta({
@@ -347,7 +368,7 @@ function EnviarPropuesta({ profile }: { profile: UsuarioProfile }) {
       mensaje: mensaje.trim(),
       propuestasIniciales: propuestasIniciales ? Number(propuestasIniciales) : null,
       rondasCambio: rondasCambio ? Number(rondasCambio) : null,
-      cvUrl: url,
+      cvUrl,
     });
     setLoading(false);
 
@@ -355,7 +376,7 @@ function EnviarPropuesta({ profile }: { profile: UsuarioProfile }) {
       setError(sendError?.message ?? "No se pudo enviar tu propuesta.");
       return;
     }
-    navigate("/dashboard/creativo/buscar-proyecto");
+    setEnviado(true);
   };
 
   if (loadingProyecto) {
@@ -369,6 +390,19 @@ function EnviarPropuesta({ profile }: { profile: UsuarioProfile }) {
           <ChevronLeft size={18} /> Regresar a proyectos
         </Link>
         <EmptyState text="Este proyecto ya no está disponible." />
+      </div>
+    );
+  }
+
+  if (enviado) {
+    return (
+      <div className="flex w-full flex-col items-center gap-6">
+        <ConfirmacionBanner
+          color="amarillo"
+          mensaje="¡Propuesta enviada exitosamente!"
+          botonLabel="Volver a inicio"
+          botonTo="/dashboard/creativo"
+        />
       </div>
     );
   }
@@ -478,12 +512,27 @@ function EnviarPropuesta({ profile }: { profile: UsuarioProfile }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-[14px] font-medium text-[#0a142f]">Sube tu CV</label>
-            <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[10px] border-2 border-dashed border-[#cbd5e1] bg-[#f8fafc] py-8 text-center hover:bg-[#f1f5f9]">
-              <Upload size={20} className="text-[#64748b]" />
-              <span className="px-4 text-[13px] text-[#64748b]">{cvFile ? cvFile.name : "PDF o Word — haz click para elegir"}</span>
-              <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => setCvFile(e.target.files?.[0] ?? null)} />
-            </label>
+            <label className="text-[14px] font-medium text-[#0a142f]">Sube tu CV (opcional)</label>
+            {cvFile ? (
+              <div className="flex items-center gap-3 rounded-[10px] border border-[#e2e8f0] bg-white px-4 py-3">
+                <FileText size={20} className="shrink-0 text-[#0a142f]" />
+                <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-[#0a142f]">{cvFile.name}</span>
+                <button
+                  type="button"
+                  aria-label="Quitar CV"
+                  onClick={() => setCvFile(null)}
+                  className="flex size-7 shrink-0 items-center justify-center rounded-[6px] text-[#94a3b8] hover:bg-[#f3f4f6] hover:text-[#d4183d]"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ) : (
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[10px] border-2 border-dashed border-[#cbd5e1] bg-[#f8fafc] py-8 text-center hover:bg-[#f1f5f9]">
+                <Upload size={20} className="text-[#64748b]" />
+                <span className="px-4 text-[13px] text-[#64748b]">Solo PDF — haz click para elegir (opcional)</span>
+                <input type="file" accept="application/pdf,.pdf" className="hidden" onChange={(e) => handleCvFile(e.target.files?.[0] ?? null)} />
+              </label>
+            )}
           </div>
 
           {error && <p className="text-[14px] font-medium text-[#d4183d]">{error}</p>}
@@ -501,8 +550,8 @@ function EnviarPropuesta({ profile }: { profile: UsuarioProfile }) {
   );
 }
 
-function BuscarProyecto() {
-  const { proyectos, loading } = useProyectosDisponibles();
+function BuscarProyecto({ profile }: { profile: UsuarioProfile }) {
+  const { proyectos, loading } = useProyectosDisponibles(profile.id);
   const [query, setQuery] = useState("");
 
   const filtrados = useMemo(() => {
@@ -554,6 +603,7 @@ function BuscarProyecto() {
 function useProyectosAsignados(creativoId: number) {
   const [proyectos, setProyectos] = useState<ProyectoAsignado[]>([]);
   const [loading, setLoading] = useState(true);
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -566,9 +616,25 @@ function useProyectosAsignados(creativoId: number) {
     return () => {
       active = false;
     };
-  }, [creativoId]);
+  }, [creativoId, version]);
 
-  return { proyectos, loading };
+  return { proyectos, loading, refresh: () => setVersion((v) => v + 1) };
+}
+
+function botonEntregaLabel(estado: ProyectoAsignado["estado"]) {
+  switch (estado) {
+    case "en_proceso":
+      return "Entregar";
+    case "cambios_solicitados":
+      return "Corregir y entregar";
+    case "pago_realizado":
+      return "Confirmar pago";
+    case "entregado":
+    case "aceptado":
+      return "Ver estado";
+    default:
+      return "Ver detalle";
+  }
 }
 
 function ProyectoAsignadoRow({ proyecto }: { proyecto: ProyectoAsignado }) {
@@ -588,9 +654,7 @@ function ProyectoAsignadoRow({ proyecto }: { proyecto: ProyectoAsignado }) {
         to={`/dashboard/creativo/proyectos/${proyecto.id}/entregar`}
         className="flex shrink-0 items-center justify-center rounded-[10px] bg-black px-4 py-2.5"
       >
-        <p className="font-bold leading-normal text-white text-[13px] whitespace-nowrap">
-          {proyecto.estado === "en_proceso" ? "Entregar" : "Ver entrega"}
-        </p>
+        <p className="font-bold leading-normal text-white text-[13px] whitespace-nowrap">{botonEntregaLabel(proyecto.estado)}</p>
       </Link>
     </div>
   );
@@ -601,10 +665,18 @@ function ProyectoAsignadoRow({ proyecto }: { proyecto: ProyectoAsignado }) {
 /* la tabla entregas                                                    */
 /* ------------------------------------------------------------------ */
 
+function EstadoCard({ titulo, texto }: { titulo: string; texto: string }) {
+  return (
+    <div className="flex w-full max-w-[560px] flex-col items-center gap-2 rounded-[16px] border border-[#e2e8f0] bg-white p-8 text-center">
+      <p className="font-bold text-[#0a142f] text-[18px]">{titulo}</p>
+      <p className="text-[14px] text-[#64748b]">{texto}</p>
+    </div>
+  );
+}
+
 function EntregarProyecto({ profile }: { profile: UsuarioProfile }) {
   const { proyectoId } = useParams();
-  const navigate = useNavigate();
-  const { proyectos, loading: loadingProyecto } = useProyectosAsignados(profile.id);
+  const { proyectos, loading: loadingProyecto, refresh } = useProyectosAsignados(profile.id);
   const proyecto = useMemo(() => proyectos.find((p) => p.id === Number(proyectoId)), [proyectos, proyectoId]);
 
   const [descripcion, setDescripcion] = useState("");
@@ -612,6 +684,23 @@ function EntregarProyecto({ profile }: { profile: UsuarioProfile }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [enviado, setEnviado] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
+  const [pagoConfirmado, setPagoConfirmado] = useState(false);
+
+  const handleConfirmarPago = async () => {
+    if (!proyecto) return;
+    setError(null);
+    setConfirmando(true);
+    const { proyecto: actualizado, error: confirmError } = await confirmarPagoRecibido({ proyectoId: proyecto.id, creativoId: profile.id });
+    setConfirmando(false);
+
+    if (confirmError || !actualizado) {
+      setError(confirmError?.message ?? "No se pudo confirmar el pago.");
+      return;
+    }
+    refresh();
+    setPagoConfirmado(true);
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -648,6 +737,7 @@ function EntregarProyecto({ profile }: { profile: UsuarioProfile }) {
       setError(crearError?.message ?? "No se pudo enviar la entrega.");
       return;
     }
+    refresh();
     setEnviado(true);
   };
 
@@ -676,55 +766,112 @@ function EntregarProyecto({ profile }: { profile: UsuarioProfile }) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <p className="font-extrabold text-[#0a142f] text-[26px] sm:text-[32px]">Entregar proyecto</p>
+        <p className="font-extrabold text-[#0a142f] text-[26px] sm:text-[32px]">
+          {proyecto.estado === "en_proceso" || proyecto.estado === "cambios_solicitados" ? "Entregar proyecto" : "Estado del proyecto"}
+        </p>
         <p className="text-[14px] text-[#64748b]">
           Para <span className="font-bold text-[#0a142f]">{proyecto.titulo}</span> — cliente: {proyecto.cliente_nombre}
         </p>
       </div>
 
+      {error && <p className="text-[14px] font-medium text-[#d4183d]">{error}</p>}
+
       {enviado ? (
+        <ConfirmacionBanner
+          color="azul"
+          mensaje={`¡Proyecto entregado exitosamente! Está pendiente de que ${proyecto.cliente_nombre} lo revise: puede aceptarlo o pedirte cambios.`}
+          botonLabel="Volver a inicio"
+          botonTo="/dashboard/creativo"
+        />
+      ) : pagoConfirmado ? (
+        <ConfirmacionBanner
+          color="amarillo"
+          mensaje="¡Pago confirmado exitosamente! Este proyecto ya quedó completado — buen trabajo."
+          botonLabel="Volver a inicio"
+          botonTo="/dashboard/creativo"
+        />
+      ) : proyecto.estado === "entregado" ? (
+        <EstadoCard
+          titulo="Esperando revisión del cliente"
+          texto={`${proyecto.cliente_nombre} todavía no ha revisado tu entrega. Te avisamos aquí cuando la acepte o pida cambios.`}
+        />
+      ) : proyecto.estado === "aceptado" ? (
+        <EstadoCard
+          titulo="¡El cliente aceptó tu entrega!"
+          texto={`Está pendiente de que ${proyecto.cliente_nombre} realice el pago. Te avisamos aquí cuando lo marque.`}
+        />
+      ) : proyecto.estado === "pago_realizado" ? (
         <div className="flex w-full max-w-[560px] flex-col items-center gap-3 rounded-[16px] border border-[#e2e8f0] bg-white p-8 text-center">
-          <p className="font-bold text-[#0a142f] text-[18px]">¡Entrega enviada!</p>
-          <p className="text-[14px] text-[#64748b]">{proyecto.cliente_nombre} ya puede ver tu entrega.</p>
-          <Link to="/dashboard/creativo/proyectos" className="mt-2 flex items-center justify-center rounded-[10px] bg-black px-5 py-2.5">
-            <p className="font-bold text-white text-[13px] whitespace-nowrap">Volver a proyectos activos</p>
-          </Link>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="flex w-full max-w-[560px] flex-col gap-5 rounded-[16px] border border-[#e2e8f0] bg-white p-6 sm:p-8">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="descripcion-entrega" className="text-[14px] font-medium text-[#0a142f]">
-              ¿Qué estás entregando?
-            </label>
-            <textarea
-              id="descripcion-entrega"
-              rows={4}
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-              placeholder="Describe lo que estás entregando, con qué formato y cualquier nota importante…"
-              className="w-full resize-none rounded-[8px] border border-[#e2e8f0] px-3 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#ffb53e]"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-[14px] font-medium text-[#0a142f]">Subir archivo</label>
-            <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[10px] border-2 border-dashed border-[#cbd5e1] bg-[#f8fafc] py-8 text-center hover:bg-[#f1f5f9]">
-              <Upload size={20} className="text-[#64748b]" />
-              <span className="px-4 text-[13px] text-[#64748b]">{archivo ? archivo.name : "Haz click para elegir un archivo (opcional)"}</span>
-              <input type="file" className="hidden" onChange={(e) => setArchivo(e.target.files?.[0] ?? null)} />
-            </label>
-          </div>
-
-          {error && <p className="text-[14px] font-medium text-[#d4183d]">{error}</p>}
-
+          <p className="font-bold text-[#0a142f] text-[18px]">{proyecto.cliente_nombre} marcó el pago como realizado</p>
+          <p className="text-[14px] text-[#64748b]">Confirma que ya lo recibiste para cerrar el proyecto.</p>
           <button
-            type="submit"
-            disabled={loading}
-            className="flex w-full items-center justify-center rounded-[12px] bg-black px-7 py-3.5 disabled:opacity-60"
+            type="button"
+            onClick={handleConfirmarPago}
+            disabled={confirmando}
+            className="mt-2 flex items-center justify-center rounded-[12px] bg-black px-6 py-3 disabled:opacity-60"
           >
-            <p className="font-bold leading-normal text-white text-[15px]">{loading ? "Entregando…" : "Entregar proyecto"}</p>
+            <p className="font-bold text-white text-[14px] whitespace-nowrap">{confirmando ? "Confirmando…" : "Confirmar recepción del pago"}</p>
           </button>
-        </form>
+        </div>
+      ) : proyecto.estado === "completado" ? (
+        <EstadoCard titulo="Proyecto completado 🎉" texto="Este proyecto ya quedó cerrado — buen trabajo." />
+      ) : (
+        <div className="flex w-full flex-col gap-5">
+          {proyecto.estado === "cambios_solicitados" && proyecto.comentario_revision && (
+            <div className="flex flex-col gap-1 rounded-[12px] border border-[#fecaca] bg-[#fef2f2] p-4">
+              <p className="text-[13px] font-bold text-[#991b1b]">{proyecto.cliente_nombre} pidió cambios:</p>
+              <p className="text-[14px] text-[#7f1d1d]">{proyecto.comentario_revision}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex w-full flex-col gap-5 rounded-[16px] border border-[#e2e8f0] bg-white p-6 sm:p-8 lg:p-10">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="descripcion-entrega" className="text-[14px] font-medium text-[#0a142f]">
+                ¿Qué estás entregando?
+              </label>
+              <textarea
+                id="descripcion-entrega"
+                rows={5}
+                value={descripcion}
+                onChange={(e) => setDescripcion(e.target.value)}
+                placeholder="Describe lo que estás entregando, con qué formato y cualquier nota importante…"
+                className="w-full resize-none rounded-[8px] border border-[#e2e8f0] px-3 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#ffb53e]"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[14px] font-medium text-[#0a142f]">Subir archivo (opcional)</label>
+              {archivo ? (
+                <div className="flex items-center gap-3 rounded-[10px] border border-[#e2e8f0] bg-white px-4 py-3">
+                  <FileText size={20} className="shrink-0 text-[#0a142f]" />
+                  <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-[#0a142f]">{archivo.name}</span>
+                  <button
+                    type="button"
+                    aria-label="Quitar archivo"
+                    onClick={() => setArchivo(null)}
+                    className="flex size-7 shrink-0 items-center justify-center rounded-[6px] text-[#94a3b8] hover:bg-[#f3f4f6] hover:text-[#d4183d]"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[10px] border-2 border-dashed border-[#cbd5e1] bg-[#f8fafc] py-8 text-center hover:bg-[#f1f5f9]">
+                  <Upload size={20} className="text-[#64748b]" />
+                  <span className="px-4 text-[13px] text-[#64748b]">Haz click para elegir un archivo (opcional)</span>
+                  <input type="file" className="hidden" onChange={(e) => setArchivo(e.target.files?.[0] ?? null)} />
+                </label>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex w-full items-center justify-center rounded-[12px] bg-black px-7 py-3.5 disabled:opacity-60"
+            >
+              <p className="font-bold leading-normal text-white text-[15px]">{loading ? "Entregando…" : "Entregar proyecto"}</p>
+            </button>
+          </form>
+        </div>
       )}
     </div>
   );
@@ -755,12 +902,274 @@ function ProyectosActivosCreativo({ profile }: { profile: UsuarioProfile }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Portafolio — visible también para los Clientes                       */
+/* ------------------------------------------------------------------ */
+
+function usePortafolioDeCreativo(creativoId: number) {
+  const [trabajos, setTrabajos] = useState<TrabajoPortafolio[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [version, setVersion] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    listarPortafolioDeCreativo(creativoId).then((data) => {
+      if (active) {
+        setTrabajos(data);
+        setLoading(false);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [creativoId, version]);
+
+  return { trabajos, loading, refresh: () => setVersion((v) => v + 1) };
+}
+
+function PortafolioCreativo({ profile }: { profile: UsuarioProfile }) {
+  const { trabajos, loading } = usePortafolioDeCreativo(profile.id);
+
+  return (
+    <div className="flex w-full flex-col gap-6">
+      <div className="flex items-center justify-between gap-4">
+        <p className="font-extrabold text-[#0a142f] text-[26px] sm:text-[32px]">Portafolio</p>
+        <FlyingBees />
+      </div>
+
+      {loading ? (
+        <p className="py-10 text-center text-[13px] text-[#94a3b8]">Cargando…</p>
+      ) : (
+        <PortafolioGrid
+          trabajos={trabajos}
+          autorNombre={profile.nombre}
+          autorFotoUrl={profile.foto_url}
+          agregarTo="/dashboard/creativo/portafolio/agregar"
+        />
+      )}
+    </div>
+  );
+}
+
+function AgregarProyectoPortafolio({ profile }: { profile: UsuarioProfile }) {
+  const navigate = useNavigate();
+  const [titulo, setTitulo] = useState("");
+  const [categorias, setCategorias] = useState("");
+  const [descripcion, setDescripcion] = useState("");
+  const [herramientas, setHerramientas] = useState("");
+  const [link, setLink] = useState("");
+  const [fecha, setFecha] = useState("");
+  const [imagen, setImagen] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleImagen = (file: File | null) => {
+    if (!file) return;
+    setImagen(file);
+    setPreview(URL.createObjectURL(file));
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!titulo.trim()) {
+      setError("Ponle un título a tu proyecto.");
+      return;
+    }
+
+    setLoading(true);
+
+    let imagenUrl: string | null = null;
+    if (imagen) {
+      const { url, error: uploadError } = await subirImagenCloudinary(imagen);
+      if (uploadError || !url) {
+        setLoading(false);
+        setError(uploadError ?? "No se pudo subir la imagen.");
+        return;
+      }
+      imagenUrl = url;
+    }
+
+    const categoriasArr = categorias
+      .split(",")
+      .map((c) => c.trim())
+      .filter(Boolean);
+
+    const { trabajo, error: crearError } = await crearTrabajoPortafolio({
+      creativoId: profile.id,
+      titulo: titulo.trim(),
+      descripcion: descripcion.trim(),
+      imagenUrl,
+      categorias: categoriasArr,
+      herramientas: herramientas.trim(),
+      link: link.trim(),
+      fechaProyecto: fecha,
+    });
+    setLoading(false);
+
+    if (crearError || !trabajo) {
+      setError(crearError?.message ?? "No se pudo agregar el proyecto.");
+      return;
+    }
+    navigate("/dashboard/creativo/portafolio");
+  };
+
+  return (
+    <div className="flex w-full flex-col gap-6">
+      <div className="flex items-center justify-between gap-4">
+        <Link
+          to="/dashboard/creativo/portafolio"
+          className="flex w-fit items-center gap-1.5 text-[14px] font-medium text-[#0a142f] hover:underline"
+        >
+          <ChevronLeft size={18} /> Regresar a portafolio
+        </Link>
+        <FlyingBees />
+      </div>
+
+      <p className="font-extrabold text-[#0a142f] text-[26px] sm:text-[32px]">Agregar Proyecto</p>
+
+      <form onSubmit={handleSubmit} className="flex w-full max-w-[640px] flex-col gap-5 rounded-[16px] border border-[#e2e8f0] bg-white p-6 sm:p-8">
+        <div className="flex flex-col gap-2">
+          <label className="text-[14px] font-medium text-[#0a142f]">Imagen del proyecto</label>
+          <label className="flex cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-[10px] border-2 border-dashed border-[#cbd5e1] bg-[#f8fafc] py-8 text-center hover:bg-[#f1f5f9]">
+            {preview ? (
+              <img src={preview} alt="Vista previa" className="h-[160px] w-full object-cover" />
+            ) : (
+              <>
+                <Upload size={20} className="text-[#64748b]" />
+                <span className="px-4 text-[13px] text-[#64748b]">Haz click para elegir una imagen</span>
+              </>
+            )}
+            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImagen(e.target.files?.[0] ?? null)} />
+          </label>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="titulo-trabajo" className="text-[14px] font-medium text-[#0a142f]">
+            Nombre del proyecto
+          </label>
+          <input
+            id="titulo-trabajo"
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            placeholder="Ej. Identidad de marca"
+            className="w-full rounded-[8px] border border-[#e2e8f0] px-3 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#ffb53e]"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="categorias-trabajo" className="text-[14px] font-medium text-[#0a142f]">
+            Categoría (separadas por coma)
+          </label>
+          <input
+            id="categorias-trabajo"
+            value={categorias}
+            onChange={(e) => setCategorias(e.target.value)}
+            placeholder="Ej. UX-UI, Página Web"
+            className="w-full rounded-[8px] border border-[#e2e8f0] px-3 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#ffb53e]"
+          />
+        </div>
+
+        <div className="flex flex-col gap-5 sm:flex-row">
+          <div className="flex flex-1 flex-col gap-2">
+            <label htmlFor="fecha-trabajo" className="text-[14px] font-medium text-[#0a142f]">
+              Fecha en que lo realizaste
+            </label>
+            <input
+              id="fecha-trabajo"
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+              max={new Date().toISOString().slice(0, 10)}
+              className="w-full rounded-[8px] border border-[#e2e8f0] px-3 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#ffb53e]"
+            />
+          </div>
+          <div className="flex flex-1 flex-col gap-2">
+            <label htmlFor="herramientas-trabajo" className="text-[14px] font-medium text-[#0a142f]">
+              Herramientas usadas
+            </label>
+            <input
+              id="herramientas-trabajo"
+              value={herramientas}
+              onChange={(e) => setHerramientas(e.target.value)}
+              placeholder="Ej. Figma, Illustrator"
+              className="w-full rounded-[8px] border border-[#e2e8f0] px-3 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#ffb53e]"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="link-trabajo" className="text-[14px] font-medium text-[#0a142f]">
+            Link del proyecto
+          </label>
+          <input
+            id="link-trabajo"
+            type="url"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            placeholder="https://…"
+            className="w-full rounded-[8px] border border-[#e2e8f0] px-3 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#ffb53e]"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="descripcion-trabajo" className="text-[14px] font-medium text-[#0a142f]">
+            Descripción
+          </label>
+          <textarea
+            id="descripcion-trabajo"
+            rows={4}
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            placeholder="Cuéntanos de qué se trató el proyecto…"
+            className="w-full resize-none rounded-[8px] border border-[#e2e8f0] px-3 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#ffb53e]"
+          />
+        </div>
+
+        {error && <p className="text-[14px] font-medium text-[#d4183d]">{error}</p>}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex w-full items-center justify-center rounded-[12px] bg-black px-7 py-3.5 disabled:opacity-60"
+        >
+          <p className="font-bold leading-normal text-white text-[15px]">{loading ? "Guardando…" : "Agregar Proyecto"}</p>
+        </button>
+      </form>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Inicio (overview)                                                    */
 /* ------------------------------------------------------------------ */
 
+function useEstadisticasCreativo(creativoId: number) {
+  const [stats, setStats] = useState<EstadisticasCreativo | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    obtenerEstadisticasCreativo(creativoId).then((data) => {
+      if (active) {
+        setStats(data);
+        setLoading(false);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [creativoId]);
+
+  return { stats, loading };
+}
+
 function Inicio({ profile }: { profile: UsuarioProfile }) {
-  const { proyectos: disponibles, loading: loadingDisponibles } = useProyectosDisponibles();
+  const { proyectos: disponibles, loading: loadingDisponibles } = useProyectosDisponibles(profile.id);
   const { proyectos: activos, loading: loadingActivos } = useProyectosAsignados(profile.id);
+  const { stats, loading: loadingStats } = useEstadisticasCreativo(profile.id);
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="flex items-center gap-4">
@@ -772,9 +1181,13 @@ function Inicio({ profile }: { profile: UsuarioProfile }) {
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row">
-        <StatCard label="Trabajos completados" value="0" bg="bg-[#3cb9e5]" />
-        <StatCard label="Ganancias" value="L. 0" bg="bg-[#8ddaf1]" />
-        <StatCard label="Calificación promedio" value="—" bg="bg-[#CBE9F4]" />
+        <StatCard label="Trabajos completados" value={loadingStats ? "…" : String(stats?.trabajos_completados ?? 0)} bg="bg-[#3cb9e5]" />
+        <StatCard label="Ganancias" value={loadingStats ? "…" : formatMoneda(stats?.ganancias ?? 0)} bg="bg-[#8ddaf1]" />
+        <StatCard
+          label="Calificación promedio"
+          value={loadingStats ? "…" : stats?.calificacion_promedio != null ? `${stats.calificacion_promedio} ★` : "—"}
+          bg="bg-[#CBE9F4]"
+        />
       </div>
 
       <div className="grid w-full grid-cols-1 gap-6 lg:grid-cols-3">
@@ -853,12 +1266,13 @@ export default function CreativoDashboard({ profile }: { profile: UsuarioProfile
     <DashboardLayout profile={profile} navItems={NAV_ITEMS} homePath="/dashboard/creativo" configPath="/dashboard/creativo/configuracion">
       <Routes>
         <Route path="creativo" element={<Inicio profile={profile} />} />
-        <Route path="creativo/buscar-proyecto" element={<BuscarProyecto />} />
+        <Route path="creativo/buscar-proyecto" element={<BuscarProyecto profile={profile} />} />
         <Route path="creativo/buscar-proyecto/:proyectoId/propuesta" element={<EnviarPropuesta profile={profile} />} />
         <Route path="creativo/proyectos" element={<ProyectosActivosCreativo profile={profile} />} />
         <Route path="creativo/proyectos/:proyectoId/entregar" element={<EntregarProyecto profile={profile} />} />
         <Route path="creativo/mensajes" element={<ComingSoon title="Mensajes" icon={MessageSquare} />} />
-        <Route path="creativo/portafolio" element={<ComingSoon title="Portafolio" icon={ImageIcon} />} />
+        <Route path="creativo/portafolio" element={<PortafolioCreativo profile={profile} />} />
+        <Route path="creativo/portafolio/agregar" element={<AgregarProyectoPortafolio profile={profile} />} />
         <Route path="creativo/estadisticas" element={<ComingSoon title="Estadísticas" icon={BarChart3} />} />
         <Route path="creativo/pagos" element={<ComingSoon title="Pagos y facturación" icon={Wallet} />} />
         <Route path="creativo/configuracion" element={<Configuracion profile={profile} />} />

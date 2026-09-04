@@ -11,7 +11,19 @@ export interface UsuarioProfile {
   foto_url: string | null;
 }
 
-export type EstadoProyecto = "abierto" | "en_proceso" | "entregado" | "completado" | "cancelado";
+/** Flujo completo, en orden:
+ * abierto → en_proceso → entregado → (aceptado | cambios_solicitados)
+ * cambios_solicitados vuelve a "entregado" cuando el creativo corrige.
+ * aceptado → pago_realizado → completado. */
+export type EstadoProyecto =
+  | "abierto"
+  | "en_proceso"
+  | "entregado"
+  | "cambios_solicitados"
+  | "aceptado"
+  | "pago_realizado"
+  | "completado"
+  | "cancelado";
 
 /** Fila de la tabla public.proyectos (ya existía en el proyecto). */
 export interface Proyecto {
@@ -22,6 +34,8 @@ export interface Proyecto {
   presupuesto: number;
   fecha_entrega: string; // fecha ISO (yyyy-mm-dd)
   estado: EstadoProyecto;
+  /** Comentario del cliente cuando pide cambios (ver solicitar_cambios). */
+  comentario_revision: string | null;
 }
 
 /** Proyecto abierto, tal como lo ve un Creativo en "Buscar proyecto" —
@@ -30,6 +44,9 @@ export interface Proyecto {
 export interface ProyectoDisponible extends Proyecto {
   cliente_nombre: string;
   cliente_foto_url: string | null;
+  /** true si el creativo que pidió la lista ya envió una propuesta para
+   * este proyecto (siempre false si no se pasó un id de creativo). */
+  ya_envie_propuesta: boolean;
 }
 
 /** Proyecto asignado a un Creativo (hay una fila en public.contratos) —
@@ -80,4 +97,42 @@ export interface EntregaConDetalle extends Entrega {
   proyecto_titulo: string;
   creativo_nombre: string;
   creativo_foto_url: string | null;
+}
+
+/** Fila de la tabla public.resenas (ya existía en el proyecto). */
+export interface Resena {
+  id: number;
+  proyecto_id: number;
+  cliente_id: number;
+  creativo_id: number;
+  calificacion: number;
+  comentario: string | null;
+  created_at: string;
+}
+
+/** Estadísticas reales de un Creativo (vía RPC — ver
+ * supabase/schema_14_resenas.sql). calificacion_promedio es null si
+ * todavía no tiene reseñas. */
+export interface EstadisticasCreativo {
+  trabajos_completados: number;
+  ganancias: number;
+  calificacion_promedio: number | null;
+  total_resenas: number;
+}
+
+/** Fila de la tabla public.trabajos_creativo — un proyecto del portafolio
+ * (ya existía en el proyecto, ver supabase/schema_15_portafolio.sql).
+ * Visible para todos (RLS de lectura pública) — los clientes también lo
+ * ven al revisar propuestas. */
+export interface TrabajoPortafolio {
+  id: number;
+  creativo_id: number;
+  titulo: string;
+  descripcion: string | null;
+  imagen_url: string | null;
+  categorias: string[];
+  herramientas: string | null;
+  link: string | null;
+  fecha_proyecto: string | null; // fecha ISO (yyyy-mm-dd)
+  created_at: string;
 }

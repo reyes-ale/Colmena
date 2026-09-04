@@ -1,6 +1,6 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { Menu, Bell, ChevronDown, type LucideIcon } from "lucide-react";
+import { Menu, Bell, ChevronDown, Settings, LogOut, Check, type LucideIcon } from "lucide-react";
 import { useAuth } from "../../lib/AuthContext";
 import type { UsuarioProfile } from "../../lib/types";
 import imgColmenaLogoNormal1 from "../../imports/ColmenaLanding/41ac45f8c7521b60c25adadf954c316d83f63029.png";
@@ -13,11 +13,13 @@ export function Avatar({ nombre, fotoUrl, size = 56 }: { nombre: string; fotoUrl
   const initial = nombre.trim().charAt(0).toUpperCase() || "?";
   return (
     <div
-      className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-[#ffb53e] bg-[#e2e8f0]"
+      className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] border-[#ffb53e] ${
+        fotoUrl ? "" : "bg-[#e2e8f0]"
+      }`}
       style={{ width: size, height: size }}
     >
       {fotoUrl ? (
-        <img alt={nombre} src={fotoUrl} className="size-full object-cover" />
+        <img alt={nombre} src={fotoUrl} className="size-full rounded-full object-cover" />
       ) : (
         <span className="font-extrabold text-[#0a142f]" style={{ fontSize: size * 0.4 }}>
           {initial}
@@ -118,6 +120,67 @@ function SidebarContent({ profile, navItems, onNavigate }: { profile: UsuarioPro
   );
 }
 
+/** Menú del avatar en la esquina superior derecha — Configuración y
+ * Cerrar Sesión, para ambos roles (se cierra al hacer click afuera). */
+function UserMenu({ profile, configPath }: { profile: UsuarioProfile; configPath: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="flex items-center gap-2 rounded-[10px] px-1.5 py-1 hover:bg-[#f3f4f6]"
+      >
+        <Avatar nombre={profile.nombre} fotoUrl={profile.foto_url} size={32} />
+        <span className="hidden text-[14px] font-medium text-[#0a142f] sm:block">{profile.nombre}</span>
+        <ChevronDown size={16} className={`hidden text-[#475569] transition-transform sm:block ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div role="menu" className="absolute right-0 top-[calc(100%+8px)] z-50 w-[200px] overflow-hidden rounded-[12px] border border-[#e2e8f0] bg-white shadow-lg">
+          <Link
+            to={configPath}
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2.5 px-4 py-3 text-[14px] font-medium text-[#0a142f] hover:bg-[#f3f4f6]"
+          >
+            <Settings size={16} className="text-[#475569]" />
+            Configuración
+          </Link>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              signOut();
+              navigate("/login");
+            }}
+            className="flex w-full items-center gap-2.5 border-t border-[#f1f5f9] px-4 py-3 text-left text-[14px] font-medium text-[#d4183d] hover:bg-[#fef2f2]"
+          >
+            <LogOut size={16} />
+            Cerrar Sesión
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TopBar({
   profile,
   homePath,
@@ -154,11 +217,7 @@ function TopBar({
         <button type="button" aria-label="Notificaciones" className="flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-[#f3f4f6]">
           <Bell size={18} className="text-[#475569]" />
         </button>
-        <Link to={configPath} className="flex items-center gap-2">
-          <Avatar nombre={profile.nombre} fotoUrl={profile.foto_url} size={32} />
-          <span className="hidden text-[14px] font-medium text-[#0a142f] sm:block">{profile.nombre}</span>
-          <ChevronDown size={16} className="hidden text-[#475569] sm:block" />
-        </Link>
+        <UserMenu profile={profile} configPath={configPath} />
       </div>
     </div>
   );
@@ -218,6 +277,36 @@ export function Panel({ title, action, children, className = "" }: { title: stri
         {action}
       </div>
       {children}
+    </div>
+  );
+}
+
+/** Banner grande de confirmación tras completar una acción (publicar,
+ * enviar propuesta, entregar, confirmar pago…) — alterna amarillo/azul
+ * entre las distintas pantallas para que no se sientan repetitivas. */
+export function ConfirmacionBanner({
+  color,
+  mensaje,
+  botonLabel,
+  botonTo,
+}: {
+  color: "amarillo" | "azul";
+  mensaje: string;
+  botonLabel: string;
+  botonTo: string;
+}) {
+  const bg = color === "amarillo" ? "bg-[#ffd081]" : "bg-[#CBE9F4]";
+  return (
+    <div className="flex w-full flex-col items-center gap-6">
+      <div className={`flex w-full flex-col items-center gap-4 rounded-[20px] ${bg} px-8 py-12 text-center`}>
+        <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-black">
+          <Check size={32} className="text-white" strokeWidth={3} />
+        </div>
+        <p className="font-bold text-[#0a142f] text-[20px] sm:text-[22px]">{mensaje}</p>
+      </div>
+      <Link to={botonTo} className="flex items-center justify-center rounded-[12px] bg-black px-7 py-3">
+        <p className="font-bold leading-normal text-white text-[14px] whitespace-nowrap">{botonLabel}</p>
+      </Link>
     </div>
   );
 }
