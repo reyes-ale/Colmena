@@ -449,10 +449,10 @@ function BenefitsStudents() {
 /* Planes / Categorías                                                 */
 /* ------------------------------------------------------------------ */
 
-function PlanButton() {
+function PlanButton({ dark = false }: { dark?: boolean }) {
   return (
-    <div className="flex w-full items-center justify-center rounded-[12px] bg-black px-7 py-3.5" data-name="button">
-      <p className="font-bold leading-normal text-[#f8fafc] text-[15px] whitespace-nowrap">Seleccionar</p>
+    <div className={`flex w-full items-center justify-center rounded-[12px] px-7 py-3.5 ${dark ? "bg-white" : "bg-black"}`} data-name="button">
+      <p className={`font-bold leading-normal text-[15px] whitespace-nowrap ${dark ? "text-[#0a142f]" : "text-[#f8fafc]"}`}>Seleccionar</p>
     </div>
   );
 }
@@ -463,36 +463,46 @@ function CategoryCard({
   price,
   period,
   features,
+  dark = false,
 }: {
   bgClassName: string;
   planName: string;
   price: string;
   period: string;
   features: string[];
+  dark?: boolean;
 }) {
   return (
     <div className={`relative flex w-full flex-col items-start gap-5 rounded-[16px] border border-[#e2e8f0] p-6 ${bgClassName}`} data-name={`Category-Card-${planName}`}>
-      <p className="font-bold leading-normal text-[#0a142f] text-[22px] sm:text-[23px]">{planName}</p>
-      <p className="flex items-baseline gap-1 leading-[1.5] text-black">
-        <span className="font-extrabold text-[42px] sm:text-[55px]">{price}</span>
-        <span className="font-extrabold text-[26px] sm:text-[32px]">{period}</span>
+      <p className={`font-bold leading-normal text-[22px] sm:text-[23px] ${dark ? "text-white" : "text-[#0a142f]"}`}>{planName}</p>
+      <p className={`flex flex-wrap items-baseline gap-1 leading-[1.5] ${dark ? "text-white" : "text-black"}`}>
+        <span className="whitespace-nowrap font-extrabold text-[36px] sm:text-[48px] lg:text-[38px] 2xl:text-[48px]">{price}</span>
+        <span className="font-extrabold text-[22px] sm:text-[28px] lg:text-[22px] 2xl:text-[28px]">{period}</span>
       </p>
-      <ul className="list-disc space-y-1 pl-5 font-normal text-[14px] text-[rgba(0,0,0,0.71)]">
+      <ul className={`list-disc space-y-1 pl-5 font-normal text-[14px] ${dark ? "text-white/80" : "text-[rgba(0,0,0,0.71)]"}`}>
         {features.map((f) => (
           <li key={f} className="leading-[1.5]">
             {f}
           </li>
         ))}
       </ul>
-      <PlanButton />
+      <PlanButton dark={dark} />
     </div>
   );
 }
 
-function CategoryGroupLabel({ className, children }: { className: string; children: React.ReactNode }) {
+function CategoryGroupLabel({
+  className,
+  textClassName = "text-[#0a142f]",
+  children,
+}: {
+  className: string;
+  textClassName?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className={`flex w-full max-w-[420px] items-center justify-center overflow-hidden rounded-[100px] px-3.5 py-2 ${className}`} data-name="category-label">
-      <p className="font-bold leading-normal text-[#0a142f] text-[14px] uppercase whitespace-nowrap sm:text-[16px]">{children}</p>
+      <p className={`font-bold leading-normal ${textClassName} text-[14px] uppercase whitespace-nowrap sm:text-[16px]`}>{children}</p>
     </div>
   );
 }
@@ -529,43 +539,66 @@ function CreativeCategories() {
           subtitle="Selecciona el plan que más se adhiera a tus necesidades."
         />
 
-        <div className="flex w-full flex-col items-stretch gap-10 lg:flex-row lg:gap-6">
-          <div className="flex w-full flex-col items-center gap-6">
+        <div className="flex w-full flex-wrap items-start justify-center gap-6">
+          <div className="flex w-full flex-col items-center gap-6 lg:w-[calc(50%-12px)]">
             <CategoryGroupLabel className="bg-[#ffb53e]">Para Creativos</CategoryGroupLabel>
-            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
               <CategoryCard
                 bgClassName="bg-[#ffd081]"
                 planName="Gratuito"
                 price="L. 0"
                 period="/mes"
-                features={["Perfil profesional", "Portafolio", "Explorar proyectos", "Enviar propuestas", "Pagos protegidos"]}
+                features={["Perfil y portafolio", "Envío de propuestas", "Mensajería directa", "3 proyectos al mes"]}
               />
               <CategoryCard
                 bgClassName="bg-[rgba(251,170,35,0.87)]"
-                planName="Colmena PRO"
+                planName="Colmena Plus"
                 price="L. 200"
                 period="/mes"
-                features={["Funciones básicas gratuitas", "Perfil destacado", "Mayor participación", "Recursos de formación y tutoriales", "Herramientas para propuestas"]}
+                features={["Proyectos ilimitados", "Perfil destacado", "Estadísticas", "E-learning"]}
               />
             </div>
           </div>
 
-          <div className="flex w-full flex-col items-center gap-6">
-            <CategoryGroupLabel className="bg-[#3cb9e5]">Para Clientes</CategoryGroupLabel>
-            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+          <div className="flex w-full flex-col items-center gap-6 lg:w-[calc(50%-12px)]">
+            <CategoryGroupLabel className="bg-[#3cb9e5]">Para Empresas</CategoryGroupLabel>
+            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
               <CategoryCard
                 bgClassName="bg-[rgba(203,233,244,0.81)]"
                 planName="Gratuito"
                 price="L. 0"
                 period="/mes"
-                features={["Perfil de cliente", "Publicar proyectos", "Revisión de portafolios", "Contratar", "Comparación de propuestas"]}
+                features={["Publicar proyectos", "Recibir propuestas", "Mensajería directa", "3 proyectos al mes"]}
               />
               <CategoryCard
                 bgClassName="bg-[rgba(60,185,229,0.6)]"
-                planName="Colmena PRO"
+                planName="Colmena Business"
                 price="L. 500"
                 period="/mes"
-                features={["Funciones básicas gratuitas", "Proyectos ilimitados", "Mayor visibilidad", "Publicidad dentro de Colmena", "Filtros avanzados"]}
+                features={["Proyectos ilimitados", "Filtros avanzados", "Panel para empresas", "Soporte prioritario"]}
+              />
+            </div>
+          </div>
+
+          <div className="flex w-full flex-col items-center gap-6 lg:w-[calc(50%-12px)]">
+            <CategoryGroupLabel className="bg-[#0a142f]" textClassName="text-white">
+              Para Clientes
+            </CategoryGroupLabel>
+            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
+              <CategoryCard
+                bgClassName="bg-[#e2e5eb]"
+                planName="Gratuito"
+                price="L. 0"
+                period="/mes"
+                features={["Publicar proyectos", "Recibir propuestas", "Mensajería directa", "3 proyectos al mes"]}
+              />
+              <CategoryCard
+                dark
+                bgClassName="bg-[#0a142f]"
+                planName="Colmena Pro"
+                price="L. 350"
+                period="/mes"
+                features={["Proyectos ilimitados", "Filtros especializados", "Soporte prioritario"]}
               />
             </div>
           </div>
